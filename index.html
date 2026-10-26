@@ -104,6 +104,9 @@ footer {
   font-size: 12px; line-height: 1.6; padding-top: 8px;
 }
 </style>
+<link rel="stylesheet" href="frequency.css">
+<script src="frequency.js" defer></script>
+<script src="draw-generator.js" defer></script>
 </head>
 <body>
 <header>
@@ -114,8 +117,18 @@ footer {
   </p>
 </header>
 
+<nav class="mode-navigation" aria-label="מילוי וניתוח">
+  <div class="draw-tabs" role="tablist" aria-label="מצב הטופס">
+    <button type="button" id="past-tab" role="tab" aria-selected="true" aria-controls="ticket-panel" tabindex="0">הוגרלו בעבר</button>
+    <button type="button" id="new-tab" role="tab" aria-selected="false" aria-controls="ticket-panel" tabindex="-1">לא נמצאו בהיסטוריה</button>
+    <button type="button" id="analysis-tab" role="tab" aria-selected="false" aria-controls="analysis-panel" tabindex="-1">ניתוח תדירות</button>
+  </div>
+  <p id="generator-status" role="status" aria-live="polite">טוען היסטוריית הגרלות…</p>
+</nav>
+<section id="ticket-panel" role="tabpanel" aria-labelledby="past-tab">
+  <p id="mode-description" class="mode-description">הטבלאות יתמלאו בצירופים מהעבר לאחר טעינת הנתונים.</p>
 <div class="tools">
-  <button type="button" id="random">מילוי אקראי לכל הטבלאות</button>
+  <button type="button" id="random" disabled>הגרלה נוספת לכל הטבלאות</button>
   <button type="button" id="clear" class="secondary">ניקוי הכול</button>
   <button type="button" id="validate" class="secondary">בדיקת הטופס</button>
 </div>
@@ -125,7 +138,6 @@ footer {
     הטווח הוא 1–37, והמספר החזק הוא 1–7.
   </p>
 </div>
-
 <main class="ticket" aria-label="טופס לוטו">
   <div class="ticket-heading">
     <h2>לוטו</h2>
@@ -141,6 +153,36 @@ footer {
     הטופס אינו נשלח להגרלה ואינו מנבא תוצאות.
   </footer>
 </main>
+<p class="mode-description frequency-note">ההשוואה להיסטוריה היא לפי ששת המספרים ללא חשיבות לסדר. במצב ״הוגרלו בעבר״ גם המספר החזק נלקח מאותה הגרלה, בטווח 1–7. במצב ״לא נמצאו״ המספר החזק אקראי. הנתונים מסתיימים ב־24/10/2026 ואינם מתעדכנים אוטומטית. הופעה בעבר אינה מעידה שהיה זוכה בפרס ואינה משנה את הסיכוי בהגרלה הבאה.</p>
+</section>
+<section id="analysis-panel" class="frequency" role="tabpanel" aria-labelledby="analysis-tab" hidden>
+  <h2 id="frequency-title">אילו מספרים חזרו בהגרלות?</h2>
+  <p>ניתוח ששת המספרים הרגילים מתוך קובץ ההגרלות שהועלה. המספר החזק אינו נכלל בניתוח.</p>
+  <label for="frequency-period">תקופה לניתוח</label>
+  <select id="frequency-period">
+    <option value="all">כל ההגרלות בקובץ משנת 2010</option>
+    <option value="500">500 ההגרלות האחרונות בקובץ</option>
+    <option value="100">100 ההגרלות האחרונות בקובץ</option>
+  </select>
+  <p id="frequency-status" role="status" aria-live="polite">טוען נתוני הגרלות…</p>
+  <div id="frequency-results" hidden>
+    <dl class="frequency-summary">
+      <div><dt>הגרלות שנבדקו</dt><dd id="frequency-count"></dd></div>
+      <div><dt>מספרים משותפים להגרלות עוקבות בממוצע</dt><dd id="frequency-overlap"></dd></div>
+      <div><dt>זוגות הגרלות עוקבות עם מספר משותף</dt><dd id="frequency-shared"></dd></div>
+    </dl>
+    <p>בהגרלה הוגנת של 6 מתוך 37, כל מספר צפוי להופיע בכ־16.22% מההגרלות — פעם בכ־6.17 הגרלות בממוצע.</p>
+    <p>הטבלה ממוינת לפי מספר ההופעות, מהגבוה לנמוך. המרווח הוא מספר ההגרלות בין הופעות עוקבות של אותו מספר; הופעות בשתי הגרלות רצופות נותנות מרווח של 1.</p>
+    <div class="frequency-scroll" role="region" aria-label="טבלת תדירות המספרים" tabindex="0">
+      <table class="frequency-table">
+        <caption>תדירות כל אחד מ־37 המספרים בתקופה שנבחרה</caption>
+        <thead><tr><th scope="col">מספר</th><th scope="col">הופעות</th><th scope="col">אחוז מההגרלות</th><th scope="col">מרווח ממוצע בהגרלות</th></tr></thead>
+        <tbody id="frequency-rows"></tbody>
+      </table>
+    </div>
+  </div>
+  <p class="frequency-note">הנתונים בקובץ מסתיימים ב־24/10/2026 ואינם מתעדכנים אוטומטית. הניתוח מתחיל ב־2010 כדי לצמצם השפעה של שינויי כללים היסטוריים. תדירות בעבר אינה מנבאת את ההגרלה הבאה ואינה משנה את הסיכוי של מספר להופיע.</p>
+</section>
 
 <script>
 const tables = document.getElementById('tables');
@@ -175,6 +217,7 @@ function makeButton(number, strong, tableIndex) {
       state.numbers.add(number);
     }
 
+    state.source = '';
     render(tableIndex);
     message.textContent =
       `טבלה ${tableIndex + 1}: נבחרו ${state.numbers.size} מתוך 6 מספרים` +
@@ -258,31 +301,33 @@ function render(index) {
   state.status.textContent =
     `${state.numbers.size}/6 מספרים · ` +
     (state.strong === null ? 'חסר מספר חזק' : `חזק: ${state.strong}`) +
-    (complete ? ' · הטבלה מלאה ✓' : '');
+    (complete ? ' · הטבלה מלאה ✓' : '') +
+    (state.source ? ' · ' + state.source : '');
 }
 
-document.getElementById('random').addEventListener('click', () => {
-  states.forEach((state, index) => {
-    const pool = Array.from({ length: 37 }, (_, i) => i + 1);
-
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
-    }
-
-    state.numbers = new Set(pool.slice(0, 6));
-    state.strong = Math.floor(Math.random() * 7) + 1;
-    render(index);
-  });
-
-  message.textContent =
-    'מולאו 14 טבלאות, בכל אחת 6 מספרים שונים ומספר חזק אחד.';
-});
+window.lotoForm = {
+  count: states.length,
+  fill(draws, description) {
+    if (draws.length !== states.length || draws.some(draw =>
+      draw.numbers.length !== 6 || new Set(draw.numbers).size !== 6 ||
+      draw.numbers.some(n => !Number.isInteger(n) || n < 1 || n > 37) ||
+      !Number.isInteger(draw.strong) || draw.strong < 1 || draw.strong > 7
+    )) throw new Error('Invalid ticket data');
+    draws.forEach((draw, index) => {
+      states[index].numbers = new Set(draw.numbers);
+      states[index].strong = draw.strong;
+      states[index].source = draw.source;
+      render(index);
+    });
+    message.textContent = description;
+  }
+};
 
 document.getElementById('clear').addEventListener('click', () => {
   states.forEach((state, index) => {
     state.numbers.clear();
     state.strong = null;
+    state.source = "";
     render(index);
   });
   message.textContent = 'כל הסימונים נוקו.';

@@ -1,0 +1,47 @@
+.frequency {
+  width: calc(100% - 24px);
+  max-width: 760px;
+  margin: 24px auto;
+  padding: 20px;
+  background: #fffdf8;
+  border: 1px solid #d7c9bd;
+  border-radius: 12px;
+}
+.frequency h2 { margin-top: 0; color: #b7202c; }
+.frequency label { display: block; margin-bottom: 8px; font-weight: bold; }
+.frequency select {
+  max-width: 100%; padding: 10px; font: inherit;
+  border: 1px solid #8d7777; border-radius: 6px; background: white;
+}
+.frequency-summary { display: flex; flex-wrap: wrap; gap: 12px; }
+.frequency-summary > div {
+  flex: 1 1 150px; padding: 12px; background: #f6eeeb; border-radius: 8px;
+}
+.frequency-summary dt { line-height: 1.5; }
+.frequency-summary dd { margin: 8px 0 0; font-size: 26px; font-weight: bold; }
+.frequency-scroll { overflow-x: auto; }
+.frequency-table { width: 100%; border-collapse: collapse; text-align: right; }
+.frequency-table caption { text-align: right; margin-bottom: 12px; font-weight: bold; }
+.frequency-table th, .frequency-table td { padding: 10px 8px; border-bottom: 1px solid #e2d7d2; }
+.frequency-table thead { background: #f6eeeb; }
+.frequency-table tbody tr:nth-child(even) { background: #faf5f2; }
+.frequency-note { color: #614747; font-size: 14px; }
+.draw-tabs { display: flex; gap: 8px; }
+.mode-navigation { max-width: 760px; margin: 16px auto; padding: 0 12px; }
+.mode-description { max-width: 440px; margin: 12px auto; padding: 0 12px; text-align: center; }
+.draw-tabs { flex-wrap: wrap; }
+.draw-tabs button { flex-basis: 130px; }
+.draw-tabs button, .draw-action {
+  padding: 12px; font: bold 15px Arial, sans-serif; border-radius: 8px; cursor: pointer;
+}
+.draw-tabs button { flex: 1; border: 1px solid #b7202c; background: white; color: #9d202a; }
+.draw-tabs button[aria-selected="true"], .draw-action { background: #b7202c; color: white; }
+.draw-action { border: 0; }
+.draw-action:disabled { opacity: .5; cursor: wait; }
+.draw-result { margin-top: 16px; }
+.draw-balls { display: flex; flex-wrap: wrap; gap: 8px; direction: ltr; justify-content: center; }
+.draw-ball {
+  display: grid; place-items: center; width: 40px; height: 40px;
+  border-radius: 50%; background: #f6eeeb; border: 1px solid #b7202c;
+  color: #9d202a; font-size: 20px; font-weight: bold;
+}
