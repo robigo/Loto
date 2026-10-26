@@ -40,7 +40,7 @@
   });
   const key = numbers => [...numbers].sort((a, b) => a - b).join(',');
   try {
-    const response = await fetch('data/history.json');
+    const response = await fetch('data/history.json', {cache: 'no-store'});
     if (!response.ok) throw new Error('History unavailable');
     const history = await response.json();
     if (!Array.isArray(history) || history.length === 0 || history.some(draw =>
@@ -52,6 +52,9 @@
     const historicalKeys = new Set(history.map(draw => key(draw.numbers)));
     const eligible = history.filter(draw => draw.numbers.every(n => n <= 37) && draw.strong >= 1 && draw.strong <= 7);
     if (eligible.length === 0) throw new Error('No eligible draws');
+    const latest = eligible.reduce((a, b) => a.date > b.date ? a : b);
+    document.getElementById('latest-draw').textContent =
+      `ההגרלה האחרונה במאגר: ${latest.id} · ${latest.date.split('-').reverse().join('/')} · מספרים: ${[...latest.numbers].sort((a, b) => a - b).join(', ')} · חזק: ${latest.strong}`;
 
     fillTicket = () => {
       try {
@@ -96,6 +99,8 @@
     status.textContent = `נטענו ${history.length.toLocaleString('he-IL')} הגרלות.`;
     selectTab(tabs.find(tab => tab.getAttribute('aria-selected') === 'true'));
   } catch (error) {
+    document.getElementById('latest-draw').textContent = 'לא ניתן לטעון את תוצאת ההגרלה האחרונה במאגר.';
     status.textContent = 'לא ניתן לטעון את ההיסטוריה. המילוי האוטומטי מושבת; אפשר למלא ידנית או לרענן ולנסות שוב.';
   }
 })();
+

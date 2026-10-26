@@ -8,7 +8,7 @@
   const displayDate = date => date.split('-').reverse().join('/');
 
   try {
-    const response = await fetch('data/draws.json');
+    const response = await fetch('data/draws.json', {cache: 'no-store'});
     if (!response.ok) throw new Error('Could not load draws');
     const draws = await response.json();
     if (!Array.isArray(draws) || draws.length < 2 || draws.some(draw =>
@@ -62,3 +62,4 @@
     status.textContent = 'לא ניתן לטעון את נתוני ההגרלות. יש לרענן את הדף ולנסות שוב.';
   }
 })();
+
