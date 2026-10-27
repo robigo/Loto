@@ -1,5 +1,8 @@
-name: Fetch published Lotto results
+name: Fetch and publish Lotto results
 on:
+  schedule:
+    # Run after Tuesday and Saturday drawings (GitHub cron uses UTC).
+    - cron: '15 0 * * 0,3'
   workflow_dispatch:
   push:
     branches: [main]
@@ -8,42 +11,35 @@ on:
       - 'scripts/update_results.py'
       - 'tests/test_update_results.py'
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: fetch-lotto-results
   cancel-in-progress: false
 jobs:
-  fetch:
+  update:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
-          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Test validation and preservation of existing data
         run: python -m unittest discover -s tests -v
-      - name: Fetch and validate Pais CSV in temporary checkout
+      - name: Fetch and validate published Pais results
         run: python scripts/update_results.py
-      - name: Report new draws for reviewed publication
+      - name: Publish both data files when new draws are available
         run: |
-          python - <<'PY'
-          import json, subprocess
-          from pathlib import Path
-          previous = json.loads(subprocess.check_output(['git', 'show', 'HEAD:data/history.json']))
-          known = {draw['id'] for draw in previous}
-          current = json.loads(Path('data/history.json').read_text())
-          added = [draw for draw in current if draw['id'] not in known]
-          print(json.dumps({'stage': 'validated_lotto_results', 'added': added, 'committed': False}, ensure_ascii=False))
-          PY
-      - name: Retain validated datasets for review
-        uses: actions/upload-artifact@v4
-        with:
-          name: validated-lotto-results
-          path: |
-            data/history.json
-            data/draws.json
-          retention-days: 7
+          if git diff --quiet -- data/history.json data/draws.json; then
+            echo "No new validated draws to publish." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/history.json data/draws.json
+          git commit -m "data: publish validated Pais Lotto results"
+          git push origin HEAD:main
