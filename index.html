@@ -80,6 +80,9 @@ button:focus-visible {
   font: bold 11px Arial, sans-serif;
   cursor: pointer; touch-action: manipulation;
 }
+.pick:disabled {
+  opacity: 1; -webkit-text-fill-color: currentColor; cursor: default;
+}
 .pick::after {
   content: ""; width: 16px; height: 6px;
   margin-top: 1px; border: 1px solid #d82f36;
@@ -106,7 +109,7 @@ footer {
 </style>
 <link rel="stylesheet" href="frequency.css">
 <script src="frequency.js" defer></script>
-<script src="draw-generator.js" defer></script>
+<script src="draw-generator.js?v=fixed-first-20261027-2" defer></script>
 </head>
 <body>
 <header>
@@ -144,7 +147,7 @@ footer {
     <h2>לוטו</h2>
     <span>הדמיה • 6 מספרים + מספר חזק</span>
   </div>
-  <p class="mode-description">טבלה 1 קבועה: 1, 3, 9, 12, 14, 24 · חזק: 5. הגרלה נוספת וניקוי פועלים על טבלאות 2–14 בלבד.</p>
+  <p class="mode-description">טבלה 1 קבועה: 1, 8, 10, 12, 14, 24 · חזק: 5. הגרלה נוספת וניקוי פועלים על טבלאות 2–14 בלבד.</p>
   <div class="legend">
     <span dir="rtl">6 מספרים מתוך 37</span>
     <span dir="rtl">חזק</span>
@@ -190,7 +193,7 @@ footer {
 const tables = document.getElementById('tables');
 const message = document.getElementById('message');
 const states = [];
-const fixedNumbers = [1, 3, 9, 12, 14, 24];
+const fixedNumbers = [1, 8, 10, 12, 14, 24];
 const fixedStrong = 5;
 
 function makeButton(number, strong, tableIndex) {
