@@ -96,24 +96,6 @@ button:focus-visible {
   font-size: 10px; color: #6e5252;
 }
 .panel[data-complete="true"] .panel-status { color: #17663c; }
-.fixed-ticket {
-  margin-bottom: 18px; padding: 12px 8px;
-  border: 2px solid #17663c; border-radius: 8px;
-  text-align: center; background: #f1f8f3;
-}
-.fixed-ticket h3 { margin: 0 0 10px; color: #17663c; }
-.fixed-numbers {
-  display: flex; flex-wrap: wrap; gap: 6px;
-  justify-content: center; direction: ltr;
-}
-.fixed-number {
-  display: grid; place-items: center;
-  width: 34px; height: 34px; border-radius: 50%;
-  border: 1px solid #17663c; background: white;
-  font-weight: bold;
-}
-.fixed-strong { background: #b7202c; color: white; border-color: #b7202c; }
-.fixed-ticket p { margin: 8px 0 0; font-size: 12px; }
 #message {
   min-height: 24px; font-weight: bold; color: #9d202a;
 }
@@ -145,10 +127,10 @@ footer {
   <p id="generator-status" role="status" aria-live="polite">טוען היסטוריית הגרלות…</p>
 </nav>
 <section id="ticket-panel" role="tabpanel" aria-labelledby="past-tab">
-  <p id="mode-description" class="mode-description">הטבלאות יתמלאו בצירופים מהעבר לאחר טעינת הנתונים.</p>
+  <p id="mode-description" class="mode-description">טבלאות 2–14 יתמלאו בצירופים מהעבר לאחר טעינת הנתונים. הטבלה הראשונה קבועה.</p>
 <div class="tools">
-  <button type="button" id="random" disabled>הגרלה נוספת ל־14 הטבלאות</button>
-  <button type="button" id="clear" class="secondary">ניקוי 14 הטבלאות</button>
+  <button type="button" id="random" disabled>הגרלה נוספת ל־13 הטבלאות</button>
+  <button type="button" id="clear" class="secondary">ניקוי 13 הטבלאות</button>
   <button type="button" id="validate" class="secondary">בדיקת הטופס</button>
 </div>
 
@@ -162,19 +144,7 @@ footer {
     <h2>לוטו</h2>
     <span>הדמיה • 6 מספרים + מספר חזק</span>
   </div>
-  <section id="fixed-ticket" class="fixed-ticket" aria-labelledby="fixed-ticket-title">
-    <h3 id="fixed-ticket-title">הטבלה הקבועה שלי</h3>
-    <div class="fixed-numbers" role="group" aria-label="המספרים הקבועים">
-      <span class="fixed-number">1</span>
-      <span class="fixed-number">3</span>
-      <span class="fixed-number">9</span>
-      <span class="fixed-number">12</span>
-      <span class="fixed-number">14</span>
-      <span class="fixed-number">24</span>
-    </div>
-    <p>המספר החזק: <strong class="fixed-number fixed-strong" style="display: inline-grid; vertical-align: middle">5</strong></p>
-    <p>טבלה נוספת וקבועה בשני מצבי המילוי; אינה משתנה בהגרלה נוספת או בניקוי. בדיקת הטופס מתייחסת ל־14 הטבלאות המשתנות בלבד.</p>
-  </section>
+  <p class="mode-description">טבלה 1 קבועה: 1, 3, 9, 12, 14, 24 · חזק: 5. הגרלה נוספת וניקוי פועלים על טבלאות 2–14 בלבד.</p>
   <div class="legend">
     <span dir="rtl">6 מספרים מתוך 37</span>
     <span dir="rtl">חזק</span>
@@ -220,11 +190,14 @@ footer {
 const tables = document.getElementById('tables');
 const message = document.getElementById('message');
 const states = [];
+const fixedNumbers = [1, 3, 9, 12, 14, 24];
+const fixedStrong = 5;
 
 function makeButton(number, strong, tableIndex) {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'pick';
+  button.disabled = tableIndex === 0;
   button.textContent = number;
   button.dataset.number = number;
   button.setAttribute('aria-pressed', 'false');
@@ -235,6 +208,7 @@ function makeButton(number, strong, tableIndex) {
 
   button.addEventListener('click', () => {
     const state = states[tableIndex];
+    if (state.fixed) return;
 
     if (strong) {
       state.strong = state.strong === number ? null : number;
@@ -276,7 +250,7 @@ for (let i = 0; i < 14; i++) {
 
   const title = document.createElement('div');
   title.className = 'table-title';
-  title.textContent = `טבלה ${i + 1}`;
+  title.textContent = i === 0 ? 'טבלה 1 · קבועה' : `טבלה ${i + 1}`;
   numbers.appendChild(title);
 
   for (let number = 1; number <= 37; number++) {
@@ -305,7 +279,9 @@ for (let i = 0; i < 14; i++) {
   tables.appendChild(panel);
 
   states.push({
-    numbers: new Set(), strong: null,
+    numbers: new Set(i === 0 ? fixedNumbers : []),
+    strong: i === 0 ? fixedStrong : null, fixed: i === 0,
+    source: i === 0 ? 'המספרים הקבועים שלי' : '',
     panel, numbersElement: numbers, strongElement: strong, status
   });
   render(i);
@@ -338,14 +314,15 @@ function render(index) {
 }
 
 window.lotoForm = {
-  count: states.length,
+  count: states.length - 1,
   fill(draws, description) {
-    if (draws.length !== states.length || draws.some(draw =>
+    if (draws.length !== states.length - 1 || draws.some(draw =>
       draw.numbers.length !== 6 || new Set(draw.numbers).size !== 6 ||
       draw.numbers.some(n => !Number.isInteger(n) || n < 1 || n > 37) ||
       !Number.isInteger(draw.strong) || draw.strong < 1 || draw.strong > 7
     )) throw new Error('Invalid ticket data');
-    draws.forEach((draw, index) => {
+    draws.forEach((draw, drawIndex) => {
+      const index = drawIndex + 1;
       states[index].numbers = new Set(draw.numbers);
       states[index].strong = draw.strong;
       states[index].source = draw.source;
@@ -357,12 +334,13 @@ window.lotoForm = {
 
 document.getElementById('clear').addEventListener('click', () => {
   states.forEach((state, index) => {
+    if (state.fixed) return;
     state.numbers.clear();
     state.strong = null;
     state.source = "";
     render(index);
   });
-  message.textContent = '14 הטבלאות נוקו. הטבלה הקבועה נשמרה.';
+  message.textContent = 'טבלאות 2–14 נוקו. המספרים הקבועים בטבלה הראשונה נשמרו.';
 });
 
 document.getElementById('validate').addEventListener('click', () => {
