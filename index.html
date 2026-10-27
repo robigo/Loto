@@ -96,6 +96,24 @@ button:focus-visible {
   font-size: 10px; color: #6e5252;
 }
 .panel[data-complete="true"] .panel-status { color: #17663c; }
+.fixed-ticket {
+  margin-bottom: 18px; padding: 12px 8px;
+  border: 2px solid #17663c; border-radius: 8px;
+  text-align: center; background: #f1f8f3;
+}
+.fixed-ticket h3 { margin: 0 0 10px; color: #17663c; }
+.fixed-numbers {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  justify-content: center; direction: ltr;
+}
+.fixed-number {
+  display: grid; place-items: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid #17663c; background: white;
+  font-weight: bold;
+}
+.fixed-strong { background: #b7202c; color: white; border-color: #b7202c; }
+.fixed-ticket p { margin: 8px 0 0; font-size: 12px; }
 #message {
   min-height: 24px; font-weight: bold; color: #9d202a;
 }
@@ -129,8 +147,8 @@ footer {
 <section id="ticket-panel" role="tabpanel" aria-labelledby="past-tab">
   <p id="mode-description" class="mode-description">הטבלאות יתמלאו בצירופים מהעבר לאחר טעינת הנתונים.</p>
 <div class="tools">
-  <button type="button" id="random" disabled>הגרלה נוספת לכל הטבלאות</button>
-  <button type="button" id="clear" class="secondary">ניקוי הכול</button>
+  <button type="button" id="random" disabled>הגרלה נוספת ל־14 הטבלאות</button>
+  <button type="button" id="clear" class="secondary">ניקוי 14 הטבלאות</button>
   <button type="button" id="validate" class="secondary">בדיקת הטופס</button>
 </div>
 
@@ -144,6 +162,19 @@ footer {
     <h2>לוטו</h2>
     <span>הדמיה • 6 מספרים + מספר חזק</span>
   </div>
+  <section id="fixed-ticket" class="fixed-ticket" aria-labelledby="fixed-ticket-title">
+    <h3 id="fixed-ticket-title">הטבלה הקבועה שלי</h3>
+    <div class="fixed-numbers" role="group" aria-label="המספרים הקבועים">
+      <span class="fixed-number">1</span>
+      <span class="fixed-number">3</span>
+      <span class="fixed-number">9</span>
+      <span class="fixed-number">12</span>
+      <span class="fixed-number">14</span>
+      <span class="fixed-number">24</span>
+    </div>
+    <p>המספר החזק: <strong class="fixed-number fixed-strong" style="display: inline-grid; vertical-align: middle">5</strong></p>
+    <p>טבלה נוספת וקבועה בשני מצבי המילוי; אינה משתנה בהגרלה נוספת או בניקוי. בדיקת הטופס מתייחסת ל־14 הטבלאות המשתנות בלבד.</p>
+  </section>
   <div class="legend">
     <span dir="rtl">6 מספרים מתוך 37</span>
     <span dir="rtl">חזק</span>
@@ -331,7 +362,7 @@ document.getElementById('clear').addEventListener('click', () => {
     state.source = "";
     render(index);
   });
-  message.textContent = 'כל הסימונים נוקו.';
+  message.textContent = '14 הטבלאות נוקו. הטבלה הקבועה נשמרה.';
 });
 
 document.getElementById('validate').addEventListener('click', () => {
@@ -357,4 +388,5 @@ document.getElementById('validate').addEventListener('click', () => {
 </script>
 </body>
 </html>
+
 
