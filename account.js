@@ -46,7 +46,7 @@ async function action(task) {
 
 async function setup() {
   const {supabaseUrl, publishableKey} = accountConfig;
-  if (!supabaseUrl || !publishableKey) {
+  if (accountConfig.enabled !== true || !supabaseUrl || !publishableKey) {
     status.textContent = 'התחברות Google עדיין אינה פעילה. אפשר להמשיך להשתמש בטפסים ללא התחברות.';
     return;
   }
