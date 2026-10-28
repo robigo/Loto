@@ -114,10 +114,11 @@ footer {
   font-size: 12px; line-height: 1.6; padding-top: 8px;
 }
 </style>
-<link rel="stylesheet" href="frequency.css">
+<link rel="stylesheet" href="frequency.css?v=systematic-20261028">
 <script src="frequency.js" defer></script>
 <script src="ticket-diversity.js?v=20261028" defer></script>
-<script src="draw-generator.js?v=diversity-20261028" defer></script>
+<script src="draw-generator.js?v=systematic-20261028" defer></script>
+<script src="systematic.js?v=20261028" defer></script>
 </head>
 <body>
 <header>
@@ -134,6 +135,7 @@ footer {
     <button type="button" id="past-tab" role="tab" aria-selected="true" aria-controls="ticket-panel" tabindex="0">הוגרלו בעבר</button>
     <button type="button" id="new-tab" role="tab" aria-selected="false" aria-controls="ticket-panel" tabindex="-1">לא נמצאו בהיסטוריה</button>
     <button type="button" id="analysis-tab" role="tab" aria-selected="false" aria-controls="analysis-panel" tabindex="-1">ניתוח תדירות</button>
+    <button type="button" id="systematic-tab" role="tab" aria-selected="false" aria-controls="systematic-panel" tabindex="-1">טופס שיטתי</button>
   </div>
   <p id="generator-status" role="status" aria-live="polite">טוען היסטוריית הגרלות…</p>
 </nav>
@@ -195,6 +197,36 @@ footer {
     </div>
   </div>
   <p class="frequency-note">טווח התאריכים העדכני מוצג מעל הטבלה. הניתוח מתחיל ב־2010 כדי לצמצם השפעה של שינויי כללים היסטוריים. תדירות בעבר אינה מנבאת את ההגרלה הבאה ואינה משנה את הסיכוי של מספר להופיע.</p>
+</section>
+
+<section id="systematic-panel" class="frequency" role="tabpanel" aria-labelledby="systematic-tab" hidden>
+  <h2>טופס לוטו שיטתי</h2>
+  <p>בחר 8–12 מספרים מתוך 37 ומספר חזק אחד. כל צירוף אפשרי של שישה מהמספרים שבחרת יוצג כטבלה נפרדת.</p>
+  <label for="systematic-size">סוג הטופס</label>
+  <select id="systematic-size">
+    <option value="8">שיטתי 8 — 28 צירופים</option>
+    <option value="9">שיטתי 9 — 84 צירופים</option>
+    <option value="10">שיטתי 10 — 210 צירופים</option>
+    <option value="11">שיטתי 11 — 462 צירופים</option>
+    <option value="12">שיטתי 12 — 924 צירופים</option>
+  </select>
+  <h3>המספרים שלי</h3>
+  <div id="systematic-numbers" class="systematic-grid" role="group" aria-label="בחירת מספרים לטופס השיטתי"></div>
+  <h3>מספר חזק</h3>
+  <div id="systematic-strong" class="systematic-grid" role="group" aria-label="בחירת מספר חזק לטופס השיטתי"></div>
+  <div class="tools">
+    <button type="button" id="systematic-fixed">התחל מהמספרים הקבועים שלי</button>
+    <button type="button" id="systematic-random">מילוי אקראי</button>
+    <button type="button" id="systematic-clear" class="secondary">ניקוי הטופס השיטתי</button>
+  </div>
+  <p id="systematic-status" role="status" aria-live="polite"></p>
+  <p id="systematic-selection"></p>
+  <p id="systematic-summary"></p>
+  <details id="systematic-details" hidden>
+    <summary>הצג את כל הצירופים</summary>
+    <ol id="systematic-combinations" class="systematic-combinations"></ol>
+  </details>
+  <p class="frequency-note">הדמיה בלבד; הטופס אינו נשלח להגרלה. כל צירוף נוסף מגדיל גם את העלות ואינו מנבא תוצאות. המחיר מחושב לפי 3 ₪ לצירוף בלוטו רגיל, ללא Extra, לפי <a href="https://www.pais.co.il/info/lotto-how-to-play.aspx" target="_blank" rel="noopener noreferrer">הנחיות מפעל הפיס</a>. המחיר המחייב הוא בנקודת המכירה.</p>
 </section>
 
 <script>

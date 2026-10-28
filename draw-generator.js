@@ -6,6 +6,7 @@
   const fillButton = document.getElementById('random');
   const ticket = document.getElementById('ticket-panel');
   const analysis = document.getElementById('analysis-panel');
+  const systematic = document.getElementById('systematic-panel');
   let activeMode = 'past';
   let fillTicket;
 
@@ -16,9 +17,12 @@
       tab.tabIndex = active ? 0 : -1;
     });
     const isAnalysis = selected.id === 'analysis-tab';
-    ticket.hidden = isAnalysis;
+    const isSystematic = selected.id === 'systematic-tab';
+    ticket.hidden = isAnalysis || isSystematic;
     analysis.hidden = !isAnalysis;
-    if (!isAnalysis) {
+    systematic.hidden = !isSystematic;
+    status.hidden = isAnalysis || isSystematic;
+    if (!isAnalysis && !isSystematic) {
       activeMode = selected.id === 'past-tab' ? 'past' : 'new';
       ticket.setAttribute('aria-labelledby', selected.id);
       document.getElementById('mode-description').textContent = activeMode === 'past'
