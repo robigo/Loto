@@ -1,4 +1,4 @@
-import {accountConfig} from './account-config.js?v=20261028';
+import {accountConfig} from './account-config.js?v=20261028-enabled';
 import {createAccountStore} from './account-core.js?v=20261028';
 
 const byId = id => document.getElementById(id);
