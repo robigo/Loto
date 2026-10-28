@@ -9,6 +9,7 @@
   const summary = document.getElementById('systematic-summary');
   const details = document.getElementById('systematic-details');
   const list = document.getElementById('systematic-combinations');
+  const checkResult = document.getElementById('systematic-check-result');
   const selected = new Set();
   let strong = 5;
   const format = new Intl.NumberFormat('he-IL');
@@ -27,19 +28,28 @@
     return result;
   }
 
-  function render() {
+  function render(draw = null) {
     const target = Number(size.value);
     const numbers = [...selected].sort((a, b) => a - b);
     numberGrid.querySelectorAll('button').forEach(button => {
-      button.setAttribute('aria-pressed', String(selected.has(Number(button.dataset.number))));
+      const number = Number(button.dataset.number);
+      const matched = Boolean(draw && selected.has(number) && draw.numbers.includes(number));
+      button.setAttribute('aria-pressed', String(selected.has(number)));
+      button.dataset.match = String(matched);
+      button.setAttribute('aria-label', `מספר ${number}` + (matched ? ' · תואם להגרלה האחרונה' : ''));
     });
     strongGrid.querySelectorAll('button').forEach(button => {
-      button.setAttribute('aria-pressed', String(strong === Number(button.dataset.number)));
+      const number = Number(button.dataset.number);
+      const matched = Boolean(draw && strong === number && draw.strong === number);
+      button.setAttribute('aria-pressed', String(strong === number));
+      button.dataset.match = String(matched);
+      button.setAttribute('aria-label', `מספר חזק ${number}` + (matched ? ' · תואם להגרלה האחרונה' : ''));
     });
     selection.textContent = `המספרים שנבחרו: ${numbers.join(', ') || 'טרם נבחרו'} · חזק: ${strong === null ? 'לא נבחר' : strong}`;
     list.replaceChildren();
     details.hidden = true;
     summary.textContent = '';
+    checkResult.textContent = '';
     if (numbers.length !== target || strong === null) {
       status.textContent = `נבחרו ${numbers.length} מתוך ${target} מספרים` +
         (strong === null ? '; יש לבחור מספר חזק.' : '.');
@@ -49,11 +59,23 @@
     rows.forEach(row => {
       const item = document.createElement('li');
       item.textContent = `${row.join(', ')} · חזק: ${strong}`;
+      if (draw) {
+        const matches = row.filter(number => draw.numbers.includes(number)).length;
+        item.textContent += ` · התאמות: ${matches}/6 · ` +
+          (strong === draw.strong ? 'המספר החזק תואם ✓' : 'המספר החזק לא תואם');
+      }
       list.appendChild(item);
     });
     status.textContent = `טופס שיטתי ${target} מלא.`;
     summary.textContent = `${format.format(rows.length)} צירופים שונים · עלות מחושבת ללוטו רגיל: ${format.format(rows.length * 3)} ₪, ללא Extra.`;
     details.hidden = false;
+    if (draw) {
+      const matches = numbers.filter(number => draw.numbers.includes(number)).length;
+      checkResult.textContent = `נבדק מול הגרלה ${draw.id} מ־${draw.date.split('-').reverse().join('/')}: ` +
+        `${matches} מתוך 6 המספרים שעלו נמצאים בבחירה שלך. ` +
+        (strong === draw.strong ? 'המספר החזק תואם ✓. ' : 'המספר החזק לא תואם. ') +
+        'התאמות מסומנות בירוק; פירוט לכל צירוף מוצג ברשימה. זו השוואת מספרים בלבד, לא אישור זכייה.';
+    }
   }
 
   function makeNumber(number, isStrong) {
@@ -111,6 +133,20 @@
     selected.clear();
     strong = null;
     render();
+  });
+  document.getElementById('systematic-validate').addEventListener('click', () => {
+    if (selected.size !== Number(size.value) || strong === null) {
+      render();
+      status.textContent += ' יש להשלים את הטופס לפני בדיקת התאמות.';
+      return;
+    }
+    const draw = window.lotoForm.getLatestDraw();
+    if (!draw) {
+      render();
+      checkResult.textContent = 'לא ניתן לבדוק התאמות: תוצאת ההגרלה האחרונה עדיין לא נטענה. יש לרענן ולנסות שוב.';
+      return;
+    }
+    render(draw);
   });
   render();
 })();

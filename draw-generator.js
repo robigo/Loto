@@ -7,10 +7,11 @@
   const ticket = document.getElementById('ticket-panel');
   const analysis = document.getElementById('analysis-panel');
   const systematic = document.getElementById('systematic-panel');
+  const returnButton = document.getElementById('return-regular');
   let activeMode = 'past';
   let fillTicket;
 
-  function selectTab(selected) {
+  function selectTab(selected, refill = true) {
     tabs.forEach(tab => {
       const active = tab === selected;
       tab.setAttribute('aria-selected', String(active));
@@ -22,15 +23,21 @@
     analysis.hidden = !isAnalysis;
     systematic.hidden = !isSystematic;
     status.hidden = isAnalysis || isSystematic;
+    returnButton.hidden = !isAnalysis && !isSystematic;
     if (!isAnalysis && !isSystematic) {
       activeMode = selected.id === 'past-tab' ? 'past' : 'new';
       ticket.setAttribute('aria-labelledby', selected.id);
       document.getElementById('mode-description').textContent = activeMode === 'past'
         ? 'טבלאות 2–14 מתמלאות מהגרלות עבר ללא צירופים כפולים ובניסיון לצמצם חפיפה, עם המספר החזק המקורי. אפשר לשנות ידנית או להגריל שוב.'
         : 'טבלאות 2–14 מתמלאות בצירופים שונים שלא נמצאו בכל ההגרלות בקובץ, ובפיזור מספרים חזקים. אפשר לשנות ידנית או להגריל שוב.';
-      if (fillTicket) fillTicket();
+      if (fillTicket && refill) fillTicket();
     }
   }
+  returnButton.addEventListener('click', () => {
+    const tab = document.getElementById(activeMode === 'past' ? 'past-tab' : 'new-tab');
+    selectTab(tab, false);
+    tab.focus();
+  });
   tabs.forEach((tab, index) => {
     tab.addEventListener('click', () => selectTab(tab));
     tab.addEventListener('keydown', event => {

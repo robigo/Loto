@@ -59,4 +59,9 @@
 }
 .systematic-combinations { max-height: 420px; overflow: auto; line-height: 1.8; }
 #systematic-selection, #systematic-summary { font-weight: bold; }
+.systematic-grid button[data-match="true"] {
+  background: #dcfce7; color: #14532d; outline: 2px solid #15803d;
+}
+.systematic-grid button[data-match="true"]::after { content: ' ✓'; }
+#return-regular { margin-top: 12px; }
 

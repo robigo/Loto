@@ -114,11 +114,11 @@ footer {
   font-size: 12px; line-height: 1.6; padding-top: 8px;
 }
 </style>
-<link rel="stylesheet" href="frequency.css?v=systematic-20261028">
+<link rel="stylesheet" href="frequency.css?v=systematic-check-20261028">
 <script src="frequency.js" defer></script>
 <script src="ticket-diversity.js?v=20261028" defer></script>
-<script src="draw-generator.js?v=systematic-20261028" defer></script>
-<script src="systematic.js?v=20261028" defer></script>
+<script src="draw-generator.js?v=systematic-check-20261028" defer></script>
+<script src="systematic.js?v=check-20261028" defer></script>
 </head>
 <body>
 <header>
@@ -137,6 +137,7 @@ footer {
     <button type="button" id="analysis-tab" role="tab" aria-selected="false" aria-controls="analysis-panel" tabindex="-1">ניתוח תדירות</button>
     <button type="button" id="systematic-tab" role="tab" aria-selected="false" aria-controls="systematic-panel" tabindex="-1">טופס שיטתי</button>
   </div>
+  <button type="button" id="return-regular" class="draw-action" hidden>חזרה לטופס הרגיל</button>
   <p id="generator-status" role="status" aria-live="polite">טוען היסטוריית הגרלות…</p>
 </nav>
 <section id="ticket-panel" role="tabpanel" aria-labelledby="past-tab">
@@ -218,10 +219,12 @@ footer {
     <button type="button" id="systematic-fixed">התחל מהמספרים הקבועים שלי</button>
     <button type="button" id="systematic-random">מילוי אקראי</button>
     <button type="button" id="systematic-clear" class="secondary">ניקוי הטופס השיטתי</button>
+    <button type="button" id="systematic-validate" class="secondary">בדיקת הטופס</button>
   </div>
   <p id="systematic-status" role="status" aria-live="polite"></p>
   <p id="systematic-selection"></p>
   <p id="systematic-summary"></p>
+  <p id="systematic-check-result" role="status" aria-live="polite"></p>
   <details id="systematic-details" hidden>
     <summary>הצג את כל הצירופים</summary>
     <ol id="systematic-combinations" class="systematic-combinations"></ol>
@@ -378,6 +381,9 @@ window.lotoForm = {
   count: states.length - 1,
   getFixedDraw() {
     return {numbers: [...states[0].numbers], strong: states[0].strong};
+  },
+  getLatestDraw() {
+    return latestDraw ? {...latestDraw, numbers: [...latestDraw.numbers]} : null;
   },
   setLatestDraw(draw) {
     if (!draw || typeof draw.id !== 'string' ||
