@@ -22,8 +22,8 @@
       activeMode = selected.id === 'past-tab' ? 'past' : 'new';
       ticket.setAttribute('aria-labelledby', selected.id);
       document.getElementById('mode-description').textContent = activeMode === 'past'
-        ? 'טבלאות 2–14 מתמלאות אקראית מהגרלות עבר, עם המספר החזק המקורי. אפשר לשנות ידנית או להגריל שוב.'
-        : 'טבלאות 2–14 מתמלאות בצירופים שונים שלא נמצאו בכל ההגרלות בקובץ, עם מספר חזק אקראי. אפשר לשנות ידנית או להגריל שוב.';
+        ? 'טבלאות 2–14 מתמלאות מהגרלות עבר ללא צירופים כפולים ובניסיון לצמצם חפיפה, עם המספר החזק המקורי. אפשר לשנות ידנית או להגריל שוב.'
+        : 'טבלאות 2–14 מתמלאות בצירופים שונים שלא נמצאו בכל ההגרלות בקובץ, ובפיזור מספרים חזקים. אפשר לשנות ידנית או להגריל שוב.';
       if (fillTicket) fillTicket();
     }
   }
@@ -59,38 +59,14 @@
 
     fillTicket = () => {
       try {
-        const chosen = [];
-        const used = new Set();
-        for (let table = 0; table < window.lotoForm.count; table++) {
-          if (activeMode === 'past') {
-            const draw = eligible[Math.floor(Math.random() * eligible.length)];
-            chosen.push({numbers: draw.numbers, strong: draw.strong,
-              source: `הגרלה ${draw.id}, ${draw.date.split('-').reverse().join('/')}`});
-          } else {
-            let found = false;
-            for (let attempt = 0; attempt < 1000; attempt++) {
-              const pool = Array.from({ length: 37 }, (_, i) => i + 1);
-              for (let i = pool.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [pool[i], pool[j]] = [pool[j], pool[i]];
-              }
-              const numbers = pool.slice(0, 6);
-              const candidate = key(numbers);
-              if (!historicalKeys.has(candidate) && !used.has(candidate)) {
-                used.add(candidate);
-                chosen.push({numbers, strong: Math.floor(Math.random() * 7) + 1,
-                  source: 'הצירוף לא נמצא בקובץ ההיסטורי'});
-                found = true;
-                break;
-              }
-            }
-            if (!found) throw new Error('No new combination found');
-          }
-        }
-        window.lotoForm.fill(chosen, activeMode === 'past'
-          ? 'מולאו 13 טבלאות מהגרלות עבר, עם המספר החזק המקורי.'
-          : 'מולאו 13 טבלאות בצירופים שלא נמצאו בהיסטוריה, עם מספר חזק אקראי.');
-        status.textContent = `הטופס מולא. ההשוואה מבוססת על ${history.length.toLocaleString('he-IL')} הגרלות בקובץ.`;
+        const result = window.lotoDiversity.generate({
+          history: eligible, historicalKeys, count: window.lotoForm.count,
+          fixed: window.lotoForm.getFixedDraw(), mode: activeMode
+        });
+        window.lotoForm.fill(result.draws, activeMode === 'past'
+          ? 'מולאו 13 טבלאות שונות מהגרלות עבר, עם המספר החזק המקורי ובפיזור בין הטבלאות.'
+          : 'מולאו 13 טבלאות שונות שלא נמצאו בהיסטוריה, בפיזור מספרים ומספרים חזקים.');
+        status.textContent = `במילוי האחרון של 14 הטבלאות: ${result.covered} מתוך 37 מספרים. חפיפה מרבית בין שתי טבלאות: ${result.maxOverlap} מספרים. ההשוואה מבוססת על ${history.length.toLocaleString('he-IL')} הגרלות. אין בכך חיזוי תוצאות.`;
       } catch (error) {
         status.textContent = 'לא ניתן להשלים את ההגרלה. הטופס הקודם נשמר; נסו להגריל שוב.';
       }

@@ -29,8 +29,9 @@ function setup(ok = true) {
   const ctx = vm.createContext({window: {}, document: {
     getElementById: id => els[id], createElement: tag => new Element(tag), querySelectorAll: () => tabs
   }, fetch: async () => ({ok, json: async () => [
-    {...latest, id: '3978', date: '2026-10-24'}, latest
+    ...Array.from({length: 24}, (_, i) => ({id: String(3900 + i), date: `2026-09-${String(i + 1).padStart(2, '0')}`, numbers: Array.from({length: 6}, (_, j) => i + j + 1), strong: i % 7 + 1})), latest
   ]})});
+  vm.runInContext(fs.readFileSync(path.join(root, 'ticket-diversity.js'), 'utf8'), ctx);
   vm.runInContext(html.match(/<script>([\s\S]*?)<\/script>/)[1], ctx);
   return {els, ctx, states: vm.runInContext('states', ctx), form: ctx.window.lotoForm};
 }

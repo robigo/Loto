@@ -116,7 +116,8 @@ footer {
 </style>
 <link rel="stylesheet" href="frequency.css">
 <script src="frequency.js" defer></script>
-<script src="draw-generator.js?v=match-latest-20261028" defer></script>
+<script src="ticket-diversity.js?v=20261028" defer></script>
+<script src="draw-generator.js?v=diversity-20261028" defer></script>
 </head>
 <body>
 <header>
@@ -165,7 +166,7 @@ footer {
     הטופס אינו נשלח להגרלה ואינו מנבא תוצאות.
   </footer>
 </main>
-<p class="mode-description frequency-note">ההשוואה להיסטוריה היא לפי ששת המספרים ללא חשיבות לסדר. במצב ״הוגרלו בעבר״ גם המספר החזק נלקח מאותה הגרלה, בטווח 1–7. במצב ״לא נמצאו״ המספר החזק אקראי. מועד ההגרלה האחרונה במאגר מוצג בראש הדף; הנתונים מתרעננים לאחר פרסום עדכון למאגר. הופעה בעבר אינה מעידה שהיה זוכה בפרס ואינה משנה את הסיכוי בהגרלה הבאה.</p>
+<p class="mode-description frequency-note">ההשוואה להיסטוריה היא לפי ששת המספרים ללא חשיבות לסדר. במצב ״הוגרלו בעבר״ גם המספר החזק נלקח מאותה הגרלה, בטווח 1–7. במצב ״לא נמצאו״ המספר החזק מפוזר בין הטבלאות. המילוי האוטומטי מונע צירופים כפולים ומנסה לצמצם חפיפה בין הטבלאות, כולל מול הטבלה הקבועה. הפיזור אינו חיזוי ואינו מבטיח יותר פגיעות. מועד ההגרלה האחרונה במאגר מוצג בראש הדף; הנתונים מתרעננים לאחר פרסום עדכון למאגר. הופעה בעבר אינה מעידה שהיה זוכה בפרס ואינה משנה את הסיכוי בהגרלה הבאה.</p>
 </section>
 <section id="analysis-panel" class="frequency" role="tabpanel" aria-labelledby="analysis-tab" hidden>
   <h2 id="frequency-title">אילו מספרים חזרו בהגרלות?</h2>
@@ -343,6 +344,9 @@ function render(index) {
 
 window.lotoForm = {
   count: states.length - 1,
+  getFixedDraw() {
+    return {numbers: [...states[0].numbers], strong: states[0].strong};
+  },
   setLatestDraw(draw) {
     if (!draw || typeof draw.id !== 'string' ||
       !/^\d{4}-\d{2}-\d{2}$/.test(draw.date) ||
