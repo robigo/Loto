@@ -94,6 +94,13 @@ button:focus-visible {
 .pick[aria-pressed="true"]::after {
   background: #171717; border-color: #171717;
 }
+.pick[data-match="true"] {
+  background: #dcfce7; color: #14532d; outline: 2px solid #15803d;
+}
+.pick[data-match="true"]::after {
+  content: "✓"; height: 10px; line-height: 10px;
+  border: 0; background: transparent; color: #14532d;
+}
 .panel-status {
   margin-top: 3px; text-align: right;
   font-size: 10px; color: #6e5252;
@@ -109,7 +116,7 @@ footer {
 </style>
 <link rel="stylesheet" href="frequency.css">
 <script src="frequency.js" defer></script>
-<script src="draw-generator.js?v=fixed-first-20261027-2" defer></script>
+<script src="draw-generator.js?v=match-latest-20261028" defer></script>
 </head>
 <body>
 <header>
@@ -195,6 +202,13 @@ const message = document.getElementById('message');
 const states = [];
 const fixedNumbers = [1, 8, 10, 12, 14, 24];
 const fixedStrong = 5;
+let latestDraw = null;
+let comparisonActive = false;
+
+function resetComparison() {
+  comparisonActive = false;
+  states.forEach((state, index) => render(index));
+}
 
 function makeButton(number, strong, tableIndex) {
   const button = document.createElement('button');
@@ -227,7 +241,7 @@ function makeButton(number, strong, tableIndex) {
     }
 
     state.source = '';
-    render(tableIndex);
+    resetComparison();
     message.textContent =
       `טבלה ${tableIndex + 1}: נבחרו ${state.numbers.size} מתוך 6 מספרים` +
       (state.strong === null
@@ -294,17 +308,23 @@ function render(index) {
   const state = states[index];
 
   state.numbersElement.querySelectorAll('button').forEach(button => {
-    button.setAttribute(
-      'aria-pressed',
-      String(state.numbers.has(Number(button.dataset.number)))
-    );
+    const number = Number(button.dataset.number);
+    const selected = state.numbers.has(number);
+    const matched = comparisonActive && selected && latestDraw.numbers.includes(number);
+    button.setAttribute('aria-pressed', String(selected));
+    button.dataset.match = String(matched);
+    button.setAttribute('aria-label',
+      `טבלה ${index + 1}, מספר ${number}` + (matched ? ' · תואם להגרלה האחרונה' : ''));
   });
 
   state.strongElement.querySelectorAll('button').forEach(button => {
-    button.setAttribute(
-      'aria-pressed',
-      String(state.strong === Number(button.dataset.number))
-    );
+    const number = Number(button.dataset.number);
+    const selected = state.strong === number;
+    const matched = comparisonActive && selected && latestDraw.strong === number;
+    button.setAttribute('aria-pressed', String(selected));
+    button.dataset.match = String(matched);
+    button.setAttribute('aria-label',
+      `טבלה ${index + 1}, מספר חזק ${number}` + (matched ? ' · תואם להגרלה האחרונה' : ''));
   });
 
   const complete = state.numbers.size === 6 && state.strong !== null;
@@ -313,17 +333,34 @@ function render(index) {
     `${state.numbers.size}/6 מספרים · ` +
     (state.strong === null ? 'חסר מספר חזק' : `חזק: ${state.strong}`) +
     (complete ? ' · הטבלה מלאה ✓' : '') +
-    (state.source ? ' · ' + state.source : '');
+    (state.source ? ' · ' + state.source : '') +
+    (comparisonActive
+      ? ` · התאמות להגרלה ${latestDraw.id}: ${[...state.numbers].filter(n => latestDraw.numbers.includes(n)).length}/6 · ` +
+        (state.strong === latestDraw.strong ? 'המספר החזק תואם ✓' : 'המספר החזק לא תואם') +
+        (complete ? '' : ' · טבלה חלקית')
+      : '');
 }
 
 window.lotoForm = {
   count: states.length - 1,
+  setLatestDraw(draw) {
+    if (!draw || typeof draw.id !== 'string' ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(draw.date) ||
+      !Array.isArray(draw.numbers) || draw.numbers.length !== 6 ||
+      new Set(draw.numbers).size !== 6 ||
+      draw.numbers.some(n => !Number.isInteger(n) || n < 1 || n > 37) ||
+      !Number.isInteger(draw.strong) || draw.strong < 1 || draw.strong > 7
+    ) throw new Error('Invalid latest draw');
+    latestDraw = {...draw, numbers: [...draw.numbers]};
+    resetComparison();
+  },
   fill(draws, description) {
     if (draws.length !== states.length - 1 || draws.some(draw =>
       draw.numbers.length !== 6 || new Set(draw.numbers).size !== 6 ||
       draw.numbers.some(n => !Number.isInteger(n) || n < 1 || n > 37) ||
       !Number.isInteger(draw.strong) || draw.strong < 1 || draw.strong > 7
     )) throw new Error('Invalid ticket data');
+    resetComparison();
     draws.forEach((draw, drawIndex) => {
       const index = drawIndex + 1;
       states[index].numbers = new Set(draw.numbers);
@@ -336,6 +373,7 @@ window.lotoForm = {
 };
 
 document.getElementById('clear').addEventListener('click', () => {
+  resetComparison();
   states.forEach((state, index) => {
     if (state.fixed) return;
     state.numbers.clear();
@@ -347,25 +385,29 @@ document.getElementById('clear').addEventListener('click', () => {
 });
 
 document.getElementById('validate').addEventListener('click', () => {
-  const incomplete = [];
-  let complete = 0;
-
-  states.forEach((state, index) => {
-    const started = state.numbers.size > 0 || state.strong !== null;
-    const valid = state.numbers.size === 6 && state.strong !== null;
-    if (valid) complete++;
-    else if (started) incomplete.push(index + 1);
-  });
-
-  if (incomplete.length) {
-    message.textContent =
-      `יש להשלים 6 מספרים ומספר חזק בטבלאות: ${incomplete.join(', ')}.`;
-  } else if (complete) {
-    message.textContent = `הטופס תקין: ${complete} טבלאות מלאות.`;
-  } else {
-    message.textContent = 'הטופס ריק. יש למלא לפחות טבלה אחת.';
+  if (!latestDraw) {
+    message.textContent = 'לא ניתן לבדוק התאמות: תוצאת ההגרלה האחרונה עדיין לא נטענה. יש לרענן ולנסות שוב.';
+    return;
   }
+  comparisonActive = true;
+  let complete = 0;
+  let partial = 0;
+  let matchedTables = 0;
+  states.forEach((state, index) => {
+    if (state.numbers.size === 6 && state.strong !== null) complete++;
+    else if (state.numbers.size > 0 || state.strong !== null) partial++;
+    if ([...state.numbers].some(n => latestDraw.numbers.includes(n)) ||
+      state.strong === latestDraw.strong) matchedTables++;
+    render(index);
+  });
+  message.textContent =
+    `נבדק מול הגרלה ${latestDraw.id} מ־${latestDraw.date.split('-').reverse().join('/')}: ` +
+    `${complete} טבלאות מלאות` +
+    (partial ? `, ${partial} טבלאות חלקיות (יש להשלים)` : '') +
+    `. נמצאו התאמות ב־${matchedTables} טבלאות. מספרים תואמים מסומנים בירוק וב־✓. ` +
+    'זו השוואת מספרים בלבד, לא אישור זכייה.';
 });
+
 </script>
 </body>
 </html>

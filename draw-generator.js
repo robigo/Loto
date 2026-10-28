@@ -53,6 +53,7 @@
     const eligible = history.filter(draw => draw.numbers.every(n => n <= 37) && draw.strong >= 1 && draw.strong <= 7);
     if (eligible.length === 0) throw new Error('No eligible draws');
     const latest = eligible.reduce((a, b) => a.date > b.date ? a : b);
+    window.lotoForm.setLatestDraw(latest);
     document.getElementById('latest-draw').textContent =
       `ההגרלה האחרונה במאגר: ${latest.id} · ${latest.date.split('-').reverse().join('/')} · מספרים: ${[...latest.numbers].sort((a, b) => a - b).join(', ')} · חזק: ${latest.strong}`;
 
