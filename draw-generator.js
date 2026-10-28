@@ -49,6 +49,12 @@
       if (target) { event.preventDefault(); selectTab(target); target.focus(); }
     });
   });
+  window.lotoNavigation = {
+    showSaved(kind) {
+      const id = kind === 'systematic' ? 'systematic-tab' : (activeMode === 'past' ? 'past-tab' : 'new-tab');
+      selectTab(document.getElementById(id), false);
+    }
+  };
   const key = numbers => [...numbers].sort((a, b) => a - b).join(',');
   try {
     const response = await fetch('data/history.json', {cache: 'no-store'});
@@ -85,11 +91,12 @@
     fillButton.addEventListener('click', () => fillTicket());
     fillButton.disabled = false;
     status.textContent = `נטענו ${history.length.toLocaleString('he-IL')} הגרלות.`;
-    selectTab(tabs.find(tab => tab.getAttribute('aria-selected') === 'true'));
+    selectTab(tabs.find(tab => tab.getAttribute('aria-selected') === 'true'), !window.lotoForm.hasRestoredTicket);
   } catch (error) {
     document.getElementById('latest-draw').textContent = 'לא ניתן לטעון את תוצאת ההגרלה האחרונה במאגר.';
     status.textContent = 'לא ניתן לטעון את ההיסטוריה. המילוי האוטומטי מושבת; אפשר למלא ידנית או לרענן ולנסות שוב.';
   }
 })();
+
 
 

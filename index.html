@@ -117,8 +117,10 @@ footer {
 <link rel="stylesheet" href="frequency.css?v=systematic-check-20261028">
 <script src="frequency.js" defer></script>
 <script src="ticket-diversity.js?v=20261028" defer></script>
-<script src="draw-generator.js?v=systematic-check-20261028" defer></script>
-<script src="systematic.js?v=check-20261028" defer></script>
+<script src="draw-generator.js?v=google-account-20261028" defer></script>
+<script src="systematic.js?v=google-account-20261028" defer></script>
+<link rel="stylesheet" href="account.css?v=20261028">
+<script type="module" src="account.js?v=20261028"></script>
 </head>
 <body>
 <header>
@@ -129,6 +131,28 @@ footer {
   </p>
   <p id="latest-draw" role="status" aria-live="polite">טוען את תוצאת ההגרלה האחרונה במאגר…</p>
 </header>
+
+<section class="account-box" aria-labelledby="account-title">
+  <h2 id="account-title">הטפסים שלי</h2>
+  <p id="account-status" role="status" aria-live="polite">אפשר להשתמש בטפסים ללא התחברות.</p>
+  <div class="account-actions">
+    <button type="button" id="account-login" disabled>התחברות עם Google</button>
+    <button type="button" id="account-logout" hidden>התנתקות</button>
+  </div>
+  <div id="account-storage" hidden>
+    <label for="account-kind">הטופס לשמירה או לטעינה</label>
+    <select id="account-kind">
+      <option value="regular">טופס רגיל</option>
+      <option value="systematic">טופס שיטתי</option>
+    </select>
+    <div class="account-actions">
+      <button type="button" id="account-save">שמירה בחשבון</button>
+      <button type="button" id="account-load">טעינה מהחשבון</button>
+    </div>
+    <p>נשמרת גרסה אחת מכל סוג. שמירה מחליפה את הגרסה הקודמת; טעינה מחליפה את הבחירה שעל המסך. לאחר טעינה, הגרלה נוספת ממלאת את הטבלאות מחדש.</p>
+  </div>
+  <p id="account-message" role="status" aria-live="polite"></p>
+</section>
 
 <nav class="mode-navigation" aria-label="מילוי וניתוח">
   <div class="draw-tabs" role="tablist" aria-label="מצב הטופס">
@@ -240,6 +264,7 @@ const fixedNumbers = [1, 8, 10, 12, 14, 24];
 const fixedStrong = 5;
 let latestDraw = null;
 let comparisonActive = false;
+let restoredTicket = false;
 
 function resetComparison() {
   comparisonActive = false;
@@ -379,6 +404,42 @@ function render(index) {
 
 window.lotoForm = {
   count: states.length - 1,
+  get hasRestoredTicket() { return restoredTicket; },
+  snapshot() {
+    return {version: 1, tables: states.map(state => ({
+      numbers: [...state.numbers].sort((a, b) => a - b), strong: state.strong
+    }))};
+  },
+  restore(saved) {
+    if (!saved || saved.version !== 1 || !Array.isArray(saved.tables) ||
+      saved.tables.length !== states.length || saved.tables.some(draw =>
+        !draw || !Array.isArray(draw.numbers) || draw.numbers.length > 6 ||
+        new Set(draw.numbers).size !== draw.numbers.length ||
+        draw.numbers.some(n => !Number.isInteger(n) || n < 1 || n > 37) ||
+        (draw.strong !== null && (!Number.isInteger(draw.strong) || draw.strong < 1 || draw.strong > 7))
+      ) || JSON.stringify([...saved.tables[0].numbers].sort((a, b) => a - b)) !== JSON.stringify(fixedNumbers) ||
+      saved.tables[0].strong !== fixedStrong
+    ) throw new Error('Invalid saved regular ticket');
+    comparisonActive = false;
+    restoredTicket = true;
+    saved.tables.forEach((draw, index) => {
+      states[index].numbers = new Set(draw.numbers);
+      states[index].strong = draw.strong;
+      states[index].source = index === 0 ? 'המספרים הקבועים שלי' : 'נטען מהחשבון';
+      render(index);
+    });
+    message.textContent = 'הטופס השמור נטען. ניתן לבדוק אותו מול ההגרלה האחרונה.';
+  },
+  resetSaved() {
+    comparisonActive = false;
+    states.forEach((state, index) => {
+      state.numbers = new Set(index === 0 ? fixedNumbers : []);
+      state.strong = index === 0 ? fixedStrong : null;
+      state.source = index === 0 ? 'המספרים הקבועים שלי' : '';
+      render(index);
+    });
+    message.textContent = 'הטופס נוקה לאחר יציאה מהחשבון; המספרים הקבועים נשמרו.';
+  },
   getFixedDraw() {
     return {numbers: [...states[0].numbers], strong: states[0].strong};
   },
@@ -453,5 +514,6 @@ document.getElementById('validate').addEventListener('click', () => {
 </script>
 </body>
 </html>
+
 
 

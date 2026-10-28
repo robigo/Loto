@@ -148,5 +148,27 @@
     }
     render(draw);
   });
+  window.lotoSystematic = {
+    snapshot() {
+      return {version: 1, size: Number(size.value), numbers: [...selected].sort((a, b) => a - b), strong};
+    },
+    restore(saved) {
+      if (!saved || saved.version !== 1 || ![8, 9, 10, 11, 12].includes(saved.size) ||
+        !Array.isArray(saved.numbers) || saved.numbers.length > 12 ||
+        new Set(saved.numbers).size !== saved.numbers.length ||
+        saved.numbers.some(n => !Number.isInteger(n) || n < 1 || n > 37) ||
+        (saved.strong !== null && (!Number.isInteger(saved.strong) || saved.strong < 1 || saved.strong > 7))
+      ) throw new Error('Invalid saved systematic ticket');
+      size.value = String(saved.size);
+      selected.clear();
+      saved.numbers.forEach(n => selected.add(n));
+      strong = saved.strong;
+      render();
+    },
+    resetSaved() {
+      selected.clear(); strong = 5; size.value = '8'; render();
+    }
+  };
   render();
 })();
+

@@ -1,0 +1,15 @@
+.account-box {
+  max-width: 760px; margin: 16px auto; padding: 16px;
+  border: 1px solid #d7c9bd; border-radius: 12px; background: #fffdf8;
+  width: calc(100% - 24px);
+}
+.account-box h2 { margin: 0 0 8px; font-size: 20px; color: #9d202a; }
+.account-box p { font-size: 14px; overflow-wrap: anywhere; }
+.account-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.account-actions button, .account-box select {
+  padding: 10px 14px; border: 1px solid #b7202c; border-radius: 8px;
+  font: inherit; background: white; color: #9d202a; cursor: pointer;
+}
+.account-actions button:disabled { opacity: .6; cursor: default; }
+.account-box label { display: block; margin: 12px 0 6px; }
+#account-message { margin-bottom: 0; }
