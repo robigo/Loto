@@ -116,11 +116,11 @@ footer {
 </style>
 <link rel="stylesheet" href="frequency.css?v=systematic-check-20261028">
 <script src="frequency.js" defer></script>
-<script src="ticket-diversity.js?v=20261028" defer></script>
+<script src="ticket-diversity.js?v=20261028-private" defer></script>
 <script src="draw-generator.js?v=google-account-20261028" defer></script>
 <script src="systematic.js?v=google-account-20261028" defer></script>
 <link rel="stylesheet" href="account.css?v=20261028">
-<script type="module" src="account.js?v=20261028-enabled"></script>
+<script type="module" src="account.js?v=20261028-private"></script>
 </head>
 <body>
 <header>
@@ -165,7 +165,7 @@ footer {
   <p id="generator-status" role="status" aria-live="polite">טוען היסטוריית הגרלות…</p>
 </nav>
 <section id="ticket-panel" role="tabpanel" aria-labelledby="past-tab">
-  <p id="mode-description" class="mode-description">טבלאות 2–14 יתמלאו בצירופים מהעבר לאחר טעינת הנתונים. הטבלה הראשונה קבועה.</p>
+  <p id="mode-description" class="mode-description">טבלאות 2–14 יתמלאו בצירופים מהעבר לאחר טעינת הנתונים. אפשר למלא את טבלה 1 ידנית.</p>
 <div class="tools">
   <button type="button" id="random" disabled>הגרלה נוספת ל־13 הטבלאות</button>
   <button type="button" id="clear" class="secondary">ניקוי 13 הטבלאות</button>
@@ -182,7 +182,7 @@ footer {
     <h2>לוטו</h2>
     <span>הדמיה • 6 מספרים + מספר חזק</span>
   </div>
-  <p class="mode-description">טבלה 1 קבועה: 1, 8, 10, 12, 14, 24 · חזק: 5. הגרלה נוספת וניקוי פועלים על טבלאות 2–14 בלבד.</p>
+  <p class="mode-description">טבלה 1 מיועדת לבחירה אישית. הגרלה נוספת פועלת על טבלאות 2–14.</p>
   <div class="legend">
     <span dir="rtl">6 מספרים מתוך 37</span>
     <span dir="rtl">חזק</span>
@@ -193,7 +193,7 @@ footer {
     הטופס אינו נשלח להגרלה ואינו מנבא תוצאות.
   </footer>
 </main>
-<p class="mode-description frequency-note">ההשוואה להיסטוריה היא לפי ששת המספרים ללא חשיבות לסדר. במצב ״הוגרלו בעבר״ גם המספר החזק נלקח מאותה הגרלה, בטווח 1–7. במצב ״לא נמצאו״ המספר החזק מפוזר בין הטבלאות. המילוי האוטומטי מונע צירופים כפולים ומנסה לצמצם חפיפה בין הטבלאות, כולל מול הטבלה הקבועה. הפיזור אינו חיזוי ואינו מבטיח יותר פגיעות. מועד ההגרלה האחרונה במאגר מוצג בראש הדף; הנתונים מתרעננים לאחר פרסום עדכון למאגר. הופעה בעבר אינה מעידה שהיה זוכה בפרס ואינה משנה את הסיכוי בהגרלה הבאה.</p>
+<p class="mode-description frequency-note">ההשוואה להיסטוריה היא לפי ששת המספרים ללא חשיבות לסדר. במצב ״הוגרלו בעבר״ גם המספר החזק נלקח מאותה הגרלה, בטווח 1–7. במצב ״לא נמצאו״ המספר החזק מפוזר בין הטבלאות. המילוי האוטומטי מונע צירופים כפולים ומנסה לצמצם חפיפה בין הטבלאות, כולל מול הבחירה בטבלה הראשונה. הפיזור אינו חיזוי ואינו מבטיח יותר פגיעות. מועד ההגרלה האחרונה במאגר מוצג בראש הדף; הנתונים מתרעננים לאחר פרסום עדכון למאגר. הופעה בעבר אינה מעידה שהיה זוכה בפרס ואינה משנה את הסיכוי בהגרלה הבאה.</p>
 </section>
 <section id="analysis-panel" class="frequency" role="tabpanel" aria-labelledby="analysis-tab" hidden>
   <h2 id="frequency-title">אילו מספרים חזרו בהגרלות?</h2>
@@ -240,7 +240,7 @@ footer {
   <h3>מספר חזק</h3>
   <div id="systematic-strong" class="systematic-grid" role="group" aria-label="בחירת מספר חזק לטופס השיטתי"></div>
   <div class="tools">
-    <button type="button" id="systematic-fixed">התחל מהמספרים הקבועים שלי</button>
+    <button type="button" id="systematic-fixed">התחל מהמספרים בטבלה הראשונה</button>
     <button type="button" id="systematic-random">מילוי אקראי</button>
     <button type="button" id="systematic-clear" class="secondary">ניקוי הטופס השיטתי</button>
     <button type="button" id="systematic-validate" class="secondary">בדיקת הטופס</button>
@@ -260,8 +260,6 @@ footer {
 const tables = document.getElementById('tables');
 const message = document.getElementById('message');
 const states = [];
-const fixedNumbers = [1, 8, 10, 12, 14, 24];
-const fixedStrong = 5;
 let latestDraw = null;
 let comparisonActive = false;
 let restoredTicket = false;
@@ -275,7 +273,7 @@ function makeButton(number, strong, tableIndex) {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'pick';
-  button.disabled = tableIndex === 0;
+  button.disabled = false;
   button.textContent = number;
   button.dataset.number = number;
   button.setAttribute('aria-pressed', 'false');
@@ -328,7 +326,7 @@ for (let i = 0; i < 14; i++) {
 
   const title = document.createElement('div');
   title.className = 'table-title';
-  title.textContent = i === 0 ? 'טבלה 1 · קבועה' : `טבלה ${i + 1}`;
+  title.textContent = `טבלה ${i + 1}`;
   numbers.appendChild(title);
 
   for (let number = 1; number <= 37; number++) {
@@ -357,19 +355,18 @@ for (let i = 0; i < 14; i++) {
   tables.appendChild(panel);
 
   states.push({
-    numbers: new Set(i === 0 ? fixedNumbers : []),
-    strong: i === 0 ? fixedStrong : null, fixed: i === 0,
-    source: i === 0 ? 'המספרים הקבועים שלי' : '',
-    panel, numbersElement: numbers, strongElement: strong, status
+    numbers: new Set(), strong: null, fixed: false, source: '',
+    panel, title, numbersElement: numbers, strongElement: strong, status
   });
   render(i);
 }
 
 function render(index) {
   const state = states[index];
-
+  state.title.textContent = `טבלה ${index + 1}` + (state.fixed ? ' · אישית' : '');
   state.numbersElement.querySelectorAll('button').forEach(button => {
     const number = Number(button.dataset.number);
+    button.disabled = state.fixed;
     const selected = state.numbers.has(number);
     const matched = comparisonActive && selected && latestDraw.numbers.includes(number);
     button.setAttribute('aria-pressed', String(selected));
@@ -380,6 +377,7 @@ function render(index) {
 
   state.strongElement.querySelectorAll('button').forEach(button => {
     const number = Number(button.dataset.number);
+    button.disabled = state.fixed;
     const selected = state.strong === number;
     const matched = comparisonActive && selected && latestDraw.strong === number;
     button.setAttribute('aria-pressed', String(selected));
@@ -417,15 +415,16 @@ window.lotoForm = {
         new Set(draw.numbers).size !== draw.numbers.length ||
         draw.numbers.some(n => !Number.isInteger(n) || n < 1 || n > 37) ||
         (draw.strong !== null && (!Number.isInteger(draw.strong) || draw.strong < 1 || draw.strong > 7))
-      ) || JSON.stringify([...saved.tables[0].numbers].sort((a, b) => a - b)) !== JSON.stringify(fixedNumbers) ||
-      saved.tables[0].strong !== fixedStrong
+      ) || (states[0].fixed && (
+        JSON.stringify([...saved.tables[0].numbers].sort((a, b) => a - b)) !== JSON.stringify([...states[0].numbers].sort((a, b) => a - b)) ||
+        saved.tables[0].strong !== states[0].strong))
     ) throw new Error('Invalid saved regular ticket');
     comparisonActive = false;
     restoredTicket = true;
     saved.tables.forEach((draw, index) => {
       states[index].numbers = new Set(draw.numbers);
       states[index].strong = draw.strong;
-      states[index].source = index === 0 ? 'המספרים הקבועים שלי' : 'נטען מהחשבון';
+      states[index].source = states[index].fixed ? 'הטבלה האישית שלי' : 'נטען מהחשבון';
       render(index);
     });
     message.textContent = 'הטופס השמור נטען. ניתן לבדוק אותו מול ההגרלה האחרונה.';
@@ -433,12 +432,23 @@ window.lotoForm = {
   resetSaved() {
     comparisonActive = false;
     states.forEach((state, index) => {
-      state.numbers = new Set(index === 0 ? fixedNumbers : []);
-      state.strong = index === 0 ? fixedStrong : null;
-      state.source = index === 0 ? 'המספרים הקבועים שלי' : '';
+      state.numbers = new Set();
+      state.strong = null;
+      state.fixed = false;
+      state.source = '';
       render(index);
     });
-    message.textContent = 'הטופס נוקה לאחר יציאה מהחשבון; המספרים הקבועים נשמרו.';
+    message.textContent = 'הטופס נוקה לאחר יציאה מהחשבון.';
+  },
+  setPrivateFirst(draw) {
+    if (!draw || !Array.isArray(draw.numbers) || draw.numbers.length !== 6 ||
+      new Set(draw.numbers).size !== 6 || draw.numbers.some(n => !Number.isInteger(n) || n < 1 || n > 37) ||
+      !Number.isInteger(draw.strong) || draw.strong < 1 || draw.strong > 7) throw new Error('Invalid private first table');
+    states[0].numbers = new Set(draw.numbers);
+    states[0].strong = draw.strong;
+    states[0].fixed = true;
+    states[0].source = 'הטבלה האישית שלי';
+    resetComparison();
   },
   getFixedDraw() {
     return {numbers: [...states[0].numbers], strong: states[0].strong};
@@ -484,7 +494,7 @@ document.getElementById('clear').addEventListener('click', () => {
     state.source = "";
     render(index);
   });
-  message.textContent = 'טבלאות 2–14 נוקו. המספרים הקבועים בטבלה הראשונה נשמרו.';
+  message.textContent = states[0].fixed ? 'הטבלאות נוקו. הטבלה האישית נשמרה.' : 'הטבלאות נוקו.';
 });
 
 document.getElementById('validate').addEventListener('click', () => {
@@ -514,6 +524,7 @@ document.getElementById('validate').addEventListener('click', () => {
 </script>
 </body>
 </html>
+
 
 
 

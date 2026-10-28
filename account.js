@@ -12,6 +12,31 @@ const kind = byId('account-kind');
 const storage = byId('account-storage');
 let busy = false;
 let currentUser = null;
+let account = null;
+let privateReady = false;
+let privateRevision = 0;
+let privateLoadedUser = null;
+function schedulePrivateFirst(user) {
+  if (!privateReady || !account || !user || privateLoadedUser === user.id) return;
+  privateLoadedUser = user.id;
+  const revision = ++privateRevision;
+  const before = JSON.stringify(form('regular').snapshot().tables[0]);
+  setTimeout(async () => {
+    try {
+      const saved = await account.load('regular');
+      if (privateRevision !== revision || currentUser?.id !== user.id) return;
+      if (JSON.stringify(form('regular').snapshot().tables[0]) !== before) return;
+      const first = saved?.payload?.tables?.[0];
+      if (first && Array.isArray(first.numbers) && first.numbers.length === 6 && first.strong !== null) {
+        form('regular').setPrivateFirst(first);
+      }
+    } catch {
+      if (privateRevision === revision && currentUser?.id === user.id) {
+        message.textContent = 'לא ניתן לטעון את הטבלה האישית. אפשר לנסות לטעון את הטופס מהחשבון.';
+      }
+    }
+  }, 0);
+}
 const form = value => value === 'regular' ? window.lotoForm : window.lotoSystematic;
 const draftKey = 'loto-google-login-draft-v1';
 function buttons() {
@@ -20,7 +45,10 @@ function buttons() {
   save.disabled = load.disabled = kind.disabled = busy || !currentUser;
 }
 function showUser(user) {
-  const changed = currentUser && currentUser.id !== user?.id;
+  const oldId = currentUser?.id || null;
+  const newId = user?.id || null;
+  const changed = oldId && oldId !== newId;
+  if (oldId !== newId) { privateRevision++; privateLoadedUser = null; }
   currentUser = user;
   if (changed) {
     window.lotoForm.resetSaved();
@@ -32,6 +60,7 @@ function showUser(user) {
   storage.hidden = !user;
   status.textContent = user ? `מחובר: ${user.email || 'חשבון Google'}` : 'אינך מחובר. אפשר להמשיך להשתמש בטפסים.';
   buttons();
+  schedulePrivateFirst(user);
 }
 async function action(task) {
   if (busy) return;
@@ -62,7 +91,7 @@ async function setup() {
     storageKey: 'loto-google-auth-v1', flowType: 'pkce',
     persistSession: true, autoRefreshToken: true, detectSessionInUrl: true
   }});
-  const account = createAccountStore(client, showUser);
+  account = createAccountStore(client, showUser);
   await account.init();
   // Remove OAuth query parameters from browser history; never show or log tokens/errors.
   const callback = new URL(window.location.href);
@@ -83,6 +112,8 @@ async function setup() {
     }
   } catch { message.textContent = 'לא ניתן לשחזר את הבחירה מלפני ההתחברות. אפשר למלא את הטופס מחדש.'; }
   if (oauthError) message.textContent = 'ההתחברות לא הושלמה. אפשר לנסות שוב.';
+  privateReady = true;
+  schedulePrivateFirst(currentUser);
   login.addEventListener('click', () => action(async () => {
     // Preserve the on-screen selection across Google's redirect, without cloud writes.
     sessionStorage.setItem(draftKey, JSON.stringify({at: Date.now(),
@@ -117,3 +148,4 @@ setup().catch(() => {
   login.disabled = true; storage.hidden = true;
   status.textContent = 'ההתחברות אינה זמינה כרגע. הטפסים זמינים ללא התחברות; אפשר לרענן ולנסות שוב.';
 });
+

@@ -36,6 +36,8 @@ const plain = value => JSON.parse(JSON.stringify(value));
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return {promise, resolve}; };
 (async () => {
   const p = page();
+  assert.equal(p.form.snapshot().tables[0].numbers.length, 0);
+  p.form.setPrivateFirst({numbers: [1, 8, 10, 12, 14, 23], strong: 5});
   const regular = plain(p.form.snapshot());
   regular.tables[1] = {numbers: [2, 6, 7, 13, 22, 35], strong: 5};
   p.form.restore(regular);
@@ -61,7 +63,8 @@ const deferred = () => { let resolve; const promise = new Promise(r => { resolve
   p.ctx.window.lotoNavigation.showSaved('regular');
   assert.deepEqual(plain(p.form.snapshot()), regular);
   p.form.resetSaved(); p.systematic.resetSaved();
-  assert.deepEqual(plain(p.form.snapshot()).tables[0], {numbers: [1, 8, 10, 12, 14, 24], strong: 5});
+  assert.deepEqual(plain(p.form.snapshot()).tables[0], {numbers: [], strong: null});
+  assert.equal(p.form.getFixedDraw().numbers.length, 0);
   assert(p.form.snapshot().tables.slice(1).every(row => row.numbers.length === 0 && row.strong === null));
 
   const {createAccountStore} = await import('data:text/javascript;base64,' + Buffer.from(read('account-core.js')).toString('base64'));
@@ -121,3 +124,4 @@ const deferred = () => { let resolve; const promise = new Promise(r => { resolve
   assert.match(guest.elements['account-status'].textContent, /עדיין אינה פעילה/);
   console.log('PASS: snapshots, malformed data, fixed row, delayed history, navigation, Google redirect, ownership filters, failures, account-switch races, logout, guest mode.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
+

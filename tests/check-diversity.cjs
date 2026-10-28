@@ -9,7 +9,7 @@ const history = JSON.parse(fs.readFileSync(path.join(root, 'data/history.json'),
 const key = numbers => [...numbers].sort((a, b) => a - b).join(',');
 const historicalKeys = new Set(history.map(d => key(d.numbers)));
 const eligible = history.filter(d => d.numbers.every(n => n <= 37) && d.strong >= 1 && d.strong <= 7);
-const fixed = {numbers: [1, 8, 10, 12, 14, 24], strong: 5};
+const fixed = {numbers: [1, 8, 10, 12, 14, 23], strong: 5};
 const rng = seed => () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
 const overlap = draws => draws.reduce((sum, d, i) => sum + draws.slice(i + 1).reduce((subtotal, other) => {
   const common = d.numbers.filter(n => other.numbers.includes(n)).length;
@@ -45,3 +45,4 @@ assert(minimumCoverage >= 35);
 assert.equal(JSON.stringify({history, fixed}), before);
 assert.throws(() => ctx.window.lotoDiversity.generate({history: [fixed], historicalKeys, count: 13, fixed, mode: 'past'}));
 console.log(JSON.stringify({passed: true, runs: 40, spreadOverlap, randomOverlap, minimumNewCoverage: minimumCoverage, strongCounts: '2 each including fixed'}));
+

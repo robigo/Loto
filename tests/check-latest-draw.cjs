@@ -42,10 +42,11 @@ const picks = (state, strong = false) => (strong ? state.strongElement : state.n
   const {els, ctx, states, form} = setup();
   els.validate.events.click();
   assert.match(els.message.textContent, /עדיין לא נטענה/);
+  form.setPrivateFirst({numbers: [1, 8, 10, 12, 14, 23], strong: 5});
   await vm.runInContext(fs.readFileSync(path.join(root, 'draw-generator.js'), 'utf8'), ctx);
   assert.match(els['latest-draw'].textContent, /3979/);
   assert.equal(states.length, 14);
-  form.fill(Array.from({length: 13}, () => ({numbers: [1, 8, 10, 12, 14, 24], strong: 1})), 'fill');
+  form.fill(Array.from({length: 13}, () => ({numbers: [1, 8, 10, 12, 14, 23], strong: 1})), 'fill');
   // Full match, partial match, strong only (fixed table), and zero matches.
   states[1].numbers = new Set(latest.numbers); states[1].strong = 5;
   states[2].numbers = new Set([2, 6]); states[2].strong = null;
@@ -68,7 +69,7 @@ const picks = (state, strong = false) => (strong ? state.strongElement : state.n
     els.validate.events.click();
     els[id].events.click();
     assert(states.every(s => marked(s.numbersElement).length === 0 && marked(s.strongElement).length === 0));
-    assert.deepEqual([...states[0].numbers], [1, 8, 10, 12, 14, 24]);
+    assert.deepEqual([...states[0].numbers], [1, 8, 10, 12, 14, 23]);
     assert.equal(states[0].strong, 5);
   }
   // Replacing the latest result also removes stale marks.
@@ -84,3 +85,4 @@ const picks = (state, strong = false) => (strong ? state.strongElement : state.n
   assert.match(failed.els.message.textContent, /לא ניתן לבדוק התאמות/);
   console.log('PASS: latest draw, full/partial/zero/strong-only matches, fixed table, edit/refill/tab/clear invalidation, missing data.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
+
