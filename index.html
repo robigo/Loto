@@ -117,7 +117,7 @@ footer {
 <link rel="stylesheet" href="frequency.css?v=systematic-check-20261028">
 <script src="frequency.js" defer></script>
 <script src="ticket-diversity.js?v=20261028-private" defer></script>
-<script src="draw-generator.js?v=google-account-20261028" defer></script>
+<script src="draw-generator.js?v=random-simulation-20261102" defer></script>
 <script src="systematic.js?v=prize-amounts-3980" defer></script>
 <script src="draw-simulation.js?v=20261102" defer></script>
 <link rel="stylesheet" href="account.css?v=20261028">
@@ -159,6 +159,7 @@ footer {
   <div class="draw-tabs" role="tablist" aria-label="מצב הטופס">
     <button type="button" id="past-tab" role="tab" aria-selected="true" aria-controls="ticket-panel" tabindex="0">הוגרלו בעבר</button>
     <button type="button" id="new-tab" role="tab" aria-selected="false" aria-controls="ticket-panel" tabindex="-1">לא נמצאו בהיסטוריה</button>
+    <button type="button" id="random-tab" role="tab" aria-selected="false" aria-controls="ticket-panel" tabindex="-1">אקראי כמו הדמיה</button>
     <button type="button" id="analysis-tab" role="tab" aria-selected="false" aria-controls="analysis-panel" tabindex="-1">ניתוח תדירות</button>
     <button type="button" id="systematic-tab" role="tab" aria-selected="false" aria-controls="systematic-panel" tabindex="-1">טופס שיטתי</button>
   </div>
@@ -196,7 +197,7 @@ footer {
     הטופס אינו נשלח להגרלה ואינו מנבא תוצאות.
   </footer>
 </main>
-<p class="mode-description frequency-note">ההשוואה להיסטוריה היא לפי ששת המספרים ללא חשיבות לסדר. במצב ״הוגרלו בעבר״ גם המספר החזק נלקח מאותה הגרלה, בטווח 1–7. במצב ״לא נמצאו״ המספר החזק מפוזר בין הטבלאות. המילוי האוטומטי מונע צירופים כפולים ומנסה לצמצם חפיפה בין הטבלאות, כולל מול הבחירה בטבלה הראשונה. הפיזור אינו חיזוי ואינו מבטיח יותר פגיעות. מועד ההגרלה האחרונה במאגר מוצג בראש הדף; הנתונים מתרעננים לאחר פרסום עדכון למאגר. הופעה בעבר אינה מעידה שהיה זוכה בפרס ואינה משנה את הסיכוי בהגרלה הבאה.</p>
+<p class="mode-description frequency-note">ההשוואה להיסטוריה היא לפי ששת המספרים ללא חשיבות לסדר. במצב ״הוגרלו בעבר״ גם המספר החזק נלקח מאותה הגרלה, בטווח 1–7. במצב ״לא נמצאו״ המספר החזק מפוזר בין הטבלאות. במצבי העבר והצירופים החדשים המילוי מונע כפילויות ומנסה לצמצם חפיפה. במצב האקראי כל טבלה מוגרלת בנפרד, כמו בהדמיה. הפיזור אינו חיזוי ואינו מבטיח יותר פגיעות. מועד ההגרלה האחרונה במאגר מוצג בראש הדף; הנתונים מתרעננים לאחר פרסום עדכון למאגר. הופעה בעבר אינה מעידה שהיה זוכה בפרס ואינה משנה את הסיכוי בהגרלה הבאה.</p>
 </section>
 <section id="analysis-panel" class="frequency" role="tabpanel" aria-labelledby="analysis-tab" hidden>
   <h2 id="frequency-title">אילו מספרים חזרו בהגרלות?</h2>

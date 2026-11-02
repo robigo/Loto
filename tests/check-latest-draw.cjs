@@ -24,9 +24,9 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const latest = {id: '3979', date: '2026-10-27', numbers: [2, 6, 7, 13, 22, 35], strong: 5};
 function setup(ok = true) {
   const els = Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m => [m[1], new Element('div', m[1])]));
-  const tabs = ['past-tab', 'new-tab', 'analysis-tab'].map(id => els[id]);
+  const tabs = ['past-tab', 'new-tab', 'random-tab', 'analysis-tab'].map(id => els[id]);
   tabs[0].setAttribute('aria-selected', 'true');
-  const ctx = vm.createContext({window: {}, document: {
+  const ctx = vm.createContext({crypto: require('node:crypto').webcrypto, window: {}, document: {
     getElementById: id => els[id], createElement: tag => new Element(tag), querySelectorAll: () => tabs
   }, fetch: async () => ({ok, json: async () => [
     ...Array.from({length: 24}, (_, i) => ({id: String(3900 + i), date: `2026-09-${String(i + 1).padStart(2, '0')}`, numbers: Array.from({length: 6}, (_, j) => i + j + 1), strong: i % 7 + 1})), latest
@@ -46,6 +46,13 @@ const picks = (state, strong = false) => (strong ? state.strongElement : state.n
   await vm.runInContext(fs.readFileSync(path.join(root, 'draw-generator.js'), 'utf8'), ctx);
   assert.match(els['latest-draw'].textContent, /3979/);
   assert.equal(states.length, 14);
+  els['random-tab'].events.click();
+  assert.deepEqual([...states[0].numbers], [1, 8, 10, 12, 14, 23]);
+  assert.equal(states[0].strong, 5);
+  assert(states.slice(1).every(s => s.numbers.size === 6 && [...s.numbers].every(n => n >= 1 && n <= 37) && s.strong >= 1 && s.strong <= 7));
+  assert.match(els['mode-description'].textContent, /אקראית/);
+  assert.match(els['generator-status'].textContent, /אינה מנבאת/);
+  els['past-tab'].events.click();
   form.fill(Array.from({length: 13}, () => ({numbers: [1, 8, 10, 12, 14, 23], strong: 1})), 'fill');
   // Full match, partial match, strong only (fixed table), and zero matches.
   states[1].numbers = new Set(latest.numbers); states[1].strong = 5;
@@ -101,6 +108,7 @@ const picks = (state, strong = false) => (strong ? state.strongElement : state.n
   assert.match(failed.els.message.textContent, /לא ניתן לבדוק התאמות/);
   console.log('PASS: latest draw, full/partial/zero/strong-only matches, fixed table, edit/refill/tab/clear invalidation, missing data.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
+
 
 
 

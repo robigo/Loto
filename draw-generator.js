@@ -10,6 +10,20 @@
   const returnButton = document.getElementById('return-regular');
   let activeMode = 'past';
   let fillTicket;
+  function randomBelow(limit) {
+    const bound = Math.floor(0x100000000 / limit) * limit;
+    const value = new Uint32Array(1);
+    do { crypto.getRandomValues(value); } while (value[0] >= bound);
+    return value[0] % limit;
+  }
+  function simulatedDraw() {
+    const pool = Array.from({length: 37}, (_, i) => i + 1);
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = randomBelow(i + 1);
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return {numbers: pool.slice(0, 6).sort((a, b) => a - b), strong: randomBelow(7) + 1, source: 'בחירה אקראית כמו בהדמיה'};
+  }
 
   function selectTab(selected, refill = true) {
     tabs.forEach(tab => {
@@ -25,16 +39,18 @@
     status.hidden = isAnalysis || isSystematic;
     returnButton.hidden = !isAnalysis && !isSystematic;
     if (!isAnalysis && !isSystematic) {
-      activeMode = selected.id === 'past-tab' ? 'past' : 'new';
+      activeMode = selected.id === 'past-tab' ? 'past' : selected.id === 'random-tab' ? 'random' : 'new';
       ticket.setAttribute('aria-labelledby', selected.id);
       document.getElementById('mode-description').textContent = activeMode === 'past'
         ? 'טבלאות 2–14 מתמלאות מהגרלות עבר ללא צירופים כפולים ובניסיון לצמצם חפיפה, עם המספר החזק המקורי. אפשר לשנות ידנית או להגריל שוב.'
-        : 'טבלאות 2–14 מתמלאות בצירופים שונים שלא נמצאו בכל ההגרלות בקובץ, ובפיזור מספרים חזקים. אפשר לשנות ידנית או להגריל שוב.';
+        : activeMode === 'random'
+          ? 'טבלאות 2–14 מתמלאות בהגרלה אקראית נפרדת לכל טבלה, כמו בהדמיה. אפשר לשנות ידנית או להגריל שוב.'
+          : 'טבלאות 2–14 מתמלאות בצירופים שונים שלא נמצאו בכל ההגרלות בקובץ, ובפיזור מספרים חזקים. אפשר לשנות ידנית או להגריל שוב.';
       if (fillTicket && refill) fillTicket();
     }
   }
   returnButton.addEventListener('click', () => {
-    const tab = document.getElementById(activeMode === 'past' ? 'past-tab' : 'new-tab');
+    const tab = document.getElementById(activeMode === 'past' ? 'past-tab' : activeMode === 'random' ? 'random-tab' : 'new-tab');
     selectTab(tab, false);
     tab.focus();
   });
@@ -76,6 +92,12 @@
 
     fillTicket = () => {
       try {
+        if (activeMode === 'random') {
+          const draws = Array.from({length: window.lotoForm.count}, simulatedDraw);
+          window.lotoForm.fill(draws, 'מולאו 13 טבלאות בהגרלה אקראית, כמו בהדמיה.');
+          status.textContent = 'כל טבלה הוגרלה בנפרד. בחירה אקראית אינה מנבאת תוצאות.';
+          return;
+        }
         const result = window.lotoDiversity.generate({
           history: eligible, historicalKeys, count: window.lotoForm.count,
           fixed: window.lotoForm.getFixedDraw(), mode: activeMode
