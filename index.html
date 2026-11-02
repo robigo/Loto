@@ -119,7 +119,7 @@ footer {
 <script src="ticket-diversity.js?v=20261028-private" defer></script>
 <script src="draw-generator.js?v=random-simulation-20261102" defer></script>
 <script src="systematic.js?v=prize-amounts-3980" defer></script>
-<script src="draw-simulation.js?v=20261102" defer></script>
+<script src="draw-simulation.js?v=history-20261102" defer></script>
 <link rel="stylesheet" href="account.css?v=20261028">
 <script type="module" src="account.js?v=20261028-private"></script>
 </head>
@@ -155,6 +155,13 @@ footer {
   <p id="account-message" role="status" aria-live="polite"></p>
 </section>
 
+<section class="account-box" aria-labelledby="simulation-history-title">
+  <h2 id="simulation-history-title">הדמיות עם זכייה מדומה</h2>
+  <p>נשמרות אוטומטית בדפדפן זה בלבד, עד 500 הדמיות אחרונות. אין מדובר בזכייה אמיתית.</p>
+  <p id="simulation-history-status" role="status" aria-live="polite"></p>
+  <button type="button" id="simulation-history-clear">מחיקת היסטוריית ההדמיות</button>
+  <ol id="simulation-history-list"></ol>
+</section>
 <nav class="mode-navigation" aria-label="מילוי וניתוח">
   <div class="draw-tabs" role="tablist" aria-label="מצב הטופס">
     <button type="button" id="past-tab" role="tab" aria-selected="true" aria-controls="ticket-panel" tabindex="0">הוגרלו בעבר</button>
@@ -544,6 +551,7 @@ document.getElementById('validate').addEventListener('click', () => {
 </script>
 </body>
 </html>
+
 
 
 
