@@ -1,560 +1,117 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>טופס לוטו — הדמיה</title>
-<style>
-* { box-sizing: border-box; }
-body {
-  margin: 0; background: #eeeae5; color: #222;
-  font-family: Arial, sans-serif;
-}
-header, .tools, .notice {
-  max-width: 440px; margin: 16px auto; padding: 0 12px;
-  text-align: center;
-}
-h1 { color: #d82f36; margin-bottom: 8px; }
-p { line-height: 1.5; }
-.tools {
-  display: flex; gap: 8px; flex-wrap: wrap;
-  justify-content: center;
-}
-.tools button {
-  border: 0; border-radius: 8px; padding: 12px 16px;
-  background: #c92731; color: white; font: bold 15px Arial;
-  cursor: pointer;
-}
-.tools .secondary { background: #454545; }
-button:focus-visible {
-  outline: 3px solid #155ac1; outline-offset: 2px;
-}
-.ticket {
-  width: calc(100% - 16px); max-width: 400px;
-  margin: 16px auto; padding: 14px 10px;
-  background: #fffdf8; border: 1px solid #d7c9bd;
-  border-radius: 8px;
-}
-.ticket-heading {
-  color: #d82f36; text-align: center;
-  border-bottom: 4px solid #d82f36;
-  padding-bottom: 12px; margin-bottom: 8px;
-}
-.ticket-heading h2 { font-size: 36px; margin: 0 0 4px; }
-.legend {
-  display: grid; grid-template-columns: 10fr 2fr;
-  gap: 7px; direction: ltr; text-align: center;
-  color: #b7202c; font-size: 12px; font-weight: bold;
-  margin-bottom: 6px;
-}
-.panel {
-  margin-bottom: 7px; padding-bottom: 5px;
-  border-bottom: 1px solid #ed8c91;
-}
-.fields {
-  display: grid; grid-template-columns: 10fr 2fr;
-  gap: 7px; direction: ltr;
-}
-.numbers {
-  display: grid; grid-template-columns: repeat(10, minmax(0, 1fr));
-  gap: 1px; align-content: start;
-}
-.strong {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px; align-content: start;
-  border-left: 2px solid #d82f36; padding-left: 4px;
-}
-.table-title, .strong-title {
-  background: #d82f36; color: white;
-  display: grid; place-items: center;
-  font-size: 11px; font-weight: bold; direction: rtl;
-}
-.table-title { grid-column: span 3; }
-.pick {
-  appearance: none; -webkit-appearance: none;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  width: 100%; height: 27px; padding: 0;
-  border: 0; border-radius: 3px;
-  background: transparent; color: #ca2933;
-  font: bold 11px Arial, sans-serif;
-  cursor: pointer; touch-action: manipulation;
-}
-.pick:disabled {
-  opacity: 1; -webkit-text-fill-color: currentColor; cursor: default;
-}
-.pick::after {
-  content: ""; width: 16px; height: 6px;
-  margin-top: 1px; border: 1px solid #d82f36;
-  border-radius: 3px;
-}
-.pick[aria-pressed="true"] {
-  background: #ffe2e3; color: #171717;
-}
-.pick[aria-pressed="true"]::after {
-  background: #171717; border-color: #171717;
-}
-.pick[data-match="true"] {
-  background: #dcfce7; color: #14532d; outline: 2px solid #15803d;
-}
-.pick[data-match="true"]::after {
-  content: "✓"; height: 10px; line-height: 10px;
-  border: 0; background: transparent; color: #14532d;
-}
-.panel-status {
-  margin-top: 3px; text-align: right;
-  font-size: 10px; color: #6e5252;
-}
-.panel[data-complete="true"] .panel-status { color: #17663c; }
-#message {
-  min-height: 24px; font-weight: bold; color: #9d202a;
-}
-footer {
-  text-align: center; color: #b7202c;
-  font-size: 12px; line-height: 1.6; padding-top: 8px;
-}
-</style>
-<link rel="stylesheet" href="frequency.css?v=systematic-check-20261028">
-<script src="frequency.js" defer></script>
-<script src="ticket-diversity.js?v=20261028-private" defer></script>
-<script src="draw-generator.js?v=random-simulation-20261102" defer></script>
-<script src="systematic.js?v=prize-amounts-3980" defer></script>
-<script src="draw-simulation.js?v=history-20261102" defer></script>
-<link rel="stylesheet" href="account.css?v=20261028">
-<script type="module" src="account.js?v=20261028-private"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>הלוטו שלי</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: #f0f4fa;
+      color: #17243b;
+      font-family: Arial, sans-serif;
+    }
+    main {
+      width: 100%;
+      max-width: 480px;
+      padding: 32px 24px;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 12px 40px #17243b15;
+      text-align: center;
+    }
+    h1 { margin: 0 0 12px; }
+    p { color: #52617a; line-height: 1.6; }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin: 24px 0;
+      direction: ltr;
+    }
+    .cell {
+      display: grid;
+      place-items: center;
+      aspect-ratio: 1;
+      border: 1px solid #d5deeb;
+      border-radius: 50%;
+      font-weight: bold;
+    }
+    .selected {
+      background: #175bdb;
+      border-color: #175bdb;
+      color: white;
+    }
+    button {
+      width: 100%;
+      padding: 16px;
+      border: 0;
+      border-radius: 12px;
+      background: #175bdb;
+      color: white;
+      font: bold 18px Arial, sans-serif;
+      cursor: pointer;
+    }
+    button:hover { background: #1248b0; }
+    button:focus-visible { outline: 3px solid #eea900; outline-offset: 4px; }
+    #result { min-height: 52px; font-weight: bold; }
+    small { color: #52617a; }
+  </style>
 </head>
 <body>
-<header>
-  <h1>טופס הלוטו שלי</h1>
-  <p>
-    בכל טבלה בחר 6 מספרים ומספר חזק אחד.<br>
-    אפשר למלא טבלה אחת או יותר; אין חובה למלא את כולן.
-  </p>
-  <p id="latest-draw" role="status" aria-live="polite">טוען את תוצאת ההגרלה האחרונה במאגר…</p>
-</header>
+  <main>
+    <h1>🎱 הלוטו שלי</h1>
+    <p>הגרלת 6 מספרים ללא חזרות<br>בטווח 20–37</p>
 
-<section class="account-box" aria-labelledby="account-title">
-  <h2 id="account-title">הטפסים שלי</h2>
-  <p id="account-status" role="status" aria-live="polite">אפשר להשתמש בטפסים ללא התחברות.</p>
-  <div class="account-actions">
-    <button type="button" id="account-login" disabled>התחברות עם Google</button>
-    <button type="button" id="account-logout" hidden>התנתקות</button>
-  </div>
-  <div id="account-storage" hidden>
-    <label for="account-kind">הטופס לשמירה או לטעינה</label>
-    <select id="account-kind">
-      <option value="regular">טופס רגיל</option>
-      <option value="systematic">טופס שיטתי</option>
-    </select>
-    <div class="account-actions">
-      <button type="button" id="account-save">שמירה בחשבון</button>
-      <button type="button" id="account-load">טעינה מהחשבון</button>
-    </div>
-    <p>נשמרת גרסה אחת מכל סוג. שמירה מחליפה את הגרסה הקודמת; טעינה מחליפה את הבחירה שעל המסך. לאחר טעינה, הגרלה נוספת ממלאת את הטבלאות מחדש.</p>
-  </div>
-  <p id="account-message" role="status" aria-live="polite"></p>
-</section>
+    <div class="board" id="board" aria-label="לוח המספרים"></div>
 
-<section class="account-box" aria-labelledby="simulation-history-title">
-  <h2 id="simulation-history-title">הדמיות עם זכייה מדומה</h2>
-  <p>נשמרות אוטומטית בדפדפן זה בלבד, עד 500 הדמיות אחרונות. אין מדובר בזכייה אמיתית.</p>
-  <p id="simulation-history-status" role="status" aria-live="polite"></p>
-  <button type="button" id="simulation-history-clear">מחיקת היסטוריית ההדמיות</button>
-  <ol id="simulation-history-list"></ol>
-</section>
-<nav class="mode-navigation" aria-label="מילוי וניתוח">
-  <div class="draw-tabs" role="tablist" aria-label="מצב הטופס">
-    <button type="button" id="past-tab" role="tab" aria-selected="true" aria-controls="ticket-panel" tabindex="0">הוגרלו בעבר</button>
-    <button type="button" id="new-tab" role="tab" aria-selected="false" aria-controls="ticket-panel" tabindex="-1">לא נמצאו בהיסטוריה</button>
-    <button type="button" id="random-tab" role="tab" aria-selected="false" aria-controls="ticket-panel" tabindex="-1">אקראי כמו הדמיה</button>
-    <button type="button" id="analysis-tab" role="tab" aria-selected="false" aria-controls="analysis-panel" tabindex="-1">ניתוח תדירות</button>
-    <button type="button" id="systematic-tab" role="tab" aria-selected="false" aria-controls="systematic-panel" tabindex="-1">טופס שיטתי</button>
-  </div>
-  <button type="button" id="return-regular" class="draw-action" hidden>חזרה לטופס הרגיל</button>
-  <p id="generator-status" role="status" aria-live="polite">טוען היסטוריית הגרלות…</p>
-</nav>
-<section id="ticket-panel" role="tabpanel" aria-labelledby="past-tab">
-  <p id="mode-description" class="mode-description">טבלאות 2–14 יתמלאו בצירופים מהעבר לאחר טעינת הנתונים. אפשר למלא את טבלה 1 ידנית.</p>
-<div class="tools">
-  <button type="button" id="random" disabled>הגרלה נוספת ל־13 הטבלאות</button>
-  <button type="button" id="clear" class="secondary">ניקוי 13 הטבלאות</button>
-  <button type="button" id="validate" class="secondary">בדיקת הטופס</button>
-  <button type="button" id="simulate-regular" class="secondary">הדמיית הגרלה</button>
-</div>
+    <button type="button" id="generate">מלא לי מספרים</button>
+    <p id="result" role="status" aria-live="polite">
+      לחץ על הכפתור כדי להגריל
+    </p>
+    <small>הדמיה לשעשוע בלבד · אינה מנבאת תוצאות לוטו</small>
+  </main>
 
-<div class="notice">
-  <p id="simulation-regular-result" role="status" aria-live="polite"></p>
-  <p id="message" role="status" aria-live="polite">
-    הטווח הוא 1–37, והמספר החזק הוא 1–7.
-  </p>
-</div>
-<main class="ticket" aria-label="טופס לוטו">
-  <div class="ticket-heading">
-    <h2>לוטו</h2>
-    <span>הדמיה • 6 מספרים + מספר חזק</span>
-  </div>
-  <p class="mode-description">טבלה 1 מיועדת לבחירה אישית. הגרלה נוספת פועלת על טבלאות 2–14.</p>
-  <div class="legend">
-    <span dir="rtl">6 מספרים מתוך 37</span>
-    <span dir="rtl">חזק</span>
-  </div>
-  <div id="tables"></div>
-  <footer>
-    הדמיה עצמאית לשעשוע בלבד, ללא קשר למפעל הפיס.<br>
-    הטופס אינו נשלח להגרלה ואינו מנבא תוצאות.
-  </footer>
-</main>
-<p class="mode-description frequency-note">ההשוואה להיסטוריה היא לפי ששת המספרים ללא חשיבות לסדר. במצב ״הוגרלו בעבר״ גם המספר החזק נלקח מאותה הגרלה, בטווח 1–7. במצב ״לא נמצאו״ המספר החזק מפוזר בין הטבלאות. במצבי העבר והצירופים החדשים המילוי מונע כפילויות ומנסה לצמצם חפיפה. במצב האקראי כל טבלה מוגרלת בנפרד, כמו בהדמיה. הפיזור אינו חיזוי ואינו מבטיח יותר פגיעות. מועד ההגרלה האחרונה במאגר מוצג בראש הדף; הנתונים מתרעננים לאחר פרסום עדכון למאגר. הופעה בעבר אינה מעידה שהיה זוכה בפרס ואינה משנה את הסיכוי בהגרלה הבאה.</p>
-</section>
-<section id="analysis-panel" class="frequency" role="tabpanel" aria-labelledby="analysis-tab" hidden>
-  <h2 id="frequency-title">אילו מספרים חזרו בהגרלות?</h2>
-  <p>ניתוח ששת המספרים הרגילים מתוך קובץ ההגרלות שהועלה. המספר החזק אינו נכלל בניתוח.</p>
-  <label for="frequency-period">תקופה לניתוח</label>
-  <select id="frequency-period">
-    <option value="all">כל ההגרלות בקובץ משנת 2010</option>
-    <option value="500">500 ההגרלות האחרונות בקובץ</option>
-    <option value="100">100 ההגרלות האחרונות בקובץ</option>
-  </select>
-  <p id="frequency-status" role="status" aria-live="polite">טוען נתוני הגרלות…</p>
-  <div id="frequency-results" hidden>
-    <dl class="frequency-summary">
-      <div><dt>הגרלות שנבדקו</dt><dd id="frequency-count"></dd></div>
-      <div><dt>מספרים משותפים להגרלות עוקבות בממוצע</dt><dd id="frequency-overlap"></dd></div>
-      <div><dt>זוגות הגרלות עוקבות עם מספר משותף</dt><dd id="frequency-shared"></dd></div>
-    </dl>
-    <p>בהגרלה הוגנת של 6 מתוך 37, כל מספר צפוי להופיע בכ־16.22% מההגרלות — פעם בכ־6.17 הגרלות בממוצע.</p>
-    <p>הטבלה ממוינת לפי מספר ההופעות, מהגבוה לנמוך. המרווח הוא מספר ההגרלות בין הופעות עוקבות של אותו מספר; הופעות בשתי הגרלות רצופות נותנות מרווח של 1.</p>
-    <div class="frequency-scroll" role="region" aria-label="טבלת תדירות המספרים" tabindex="0">
-      <table class="frequency-table">
-        <caption>תדירות כל אחד מ־37 המספרים בתקופה שנבחרה</caption>
-        <thead><tr><th scope="col">מספר</th><th scope="col">הופעות</th><th scope="col">אחוז מההגרלות</th><th scope="col">מרווח ממוצע בהגרלות</th></tr></thead>
-        <tbody id="frequency-rows"></tbody>
-      </table>
-    </div>
-  </div>
-  <p class="frequency-note">טווח התאריכים העדכני מוצג מעל הטבלה. הניתוח מתחיל ב־2010 כדי לצמצם השפעה של שינויי כללים היסטוריים. תדירות בעבר אינה מנבאת את ההגרלה הבאה ואינה משנה את הסיכוי של מספר להופיע.</p>
-</section>
+  <script>
+    const board = document.getElementById('board');
+    const result = document.getElementById('result');
+    const numbers = Array.from({ length: 18 }, (_, i) => i + 20);
 
-<section id="systematic-panel" class="frequency" role="tabpanel" aria-labelledby="systematic-tab" hidden>
-  <h2>טופס לוטו שיטתי</h2>
-  <p>בחר 8–12 מספרים מתוך 37 ומספר חזק אחד. כל צירוף אפשרי של שישה מהמספרים שבחרת יוצג כטבלה נפרדת.</p>
-  <label for="systematic-size">סוג הטופס</label>
-  <select id="systematic-size">
-    <option value="8">שיטתי 8 — 28 צירופים</option>
-    <option value="9">שיטתי 9 — 84 צירופים</option>
-    <option value="10">שיטתי 10 — 210 צירופים</option>
-    <option value="11">שיטתי 11 — 462 צירופים</option>
-    <option value="12">שיטתי 12 — 924 צירופים</option>
-  </select>
-  <h3>המספרים שלי</h3>
-  <div id="systematic-numbers" class="systematic-grid" role="group" aria-label="בחירת מספרים לטופס השיטתי"></div>
-  <h3>מספר חזק</h3>
-  <div id="systematic-strong" class="systematic-grid" role="group" aria-label="בחירת מספר חזק לטופס השיטתי"></div>
-  <div class="tools">
-    <button type="button" id="systematic-fixed">התחל מהמספרים בטבלה הראשונה</button>
-    <button type="button" id="systematic-random">מילוי אקראי</button>
-    <button type="button" id="systematic-clear" class="secondary">ניקוי הטופס השיטתי</button>
-    <button type="button" id="systematic-validate" class="secondary">בדיקת הטופס</button>
-    <button type="button" id="simulate-systematic" class="secondary">הדמיית הגרלה</button>
-  </div>
-  <p id="systematic-status" role="status" aria-live="polite"></p>
-  <p id="systematic-selection"></p>
-  <p id="systematic-summary"></p>
-  <p id="systematic-check-result" role="status" aria-live="polite"></p>
-  <p id="simulation-systematic-result" role="status" aria-live="polite"></p>
-  <details id="systematic-details" hidden>
-    <summary>הצג את כל הצירופים</summary>
-    <ol id="systematic-combinations" class="systematic-combinations"></ol>
-  </details>
-  <p class="frequency-note">הדמיה בלבד; הטופס אינו נשלח להגרלה. כל צירוף נוסף מגדיל גם את העלות ואינו מנבא תוצאות. המחיר מחושב לפי 3 ₪ לצירוף בלוטו רגיל, ללא Extra, לפי <a href="https://www.pais.co.il/info/lotto-how-to-play.aspx" target="_blank" rel="noopener noreferrer">הנחיות מפעל הפיס</a>. המחיר המחייב הוא בנקודת המכירה.</p>
-</section>
+    numbers.forEach(number => {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.textContent = number;
+      cell.dataset.number = number;
+      board.appendChild(cell);
+    });
 
-<script>
-const tables = document.getElementById('tables');
-const message = document.getElementById('message');
-const states = [];
-let latestDraw = null;
-let comparisonActive = false;
-let restoredTicket = false;
+    document.getElementById('generate').addEventListener('click', () => {
+      const pool = [...numbers];
 
-function prizeTier(matches, strong) {
-  return matches >= 3 ? `${matches} מספרים${strong ? ' + חזק' : ''}` : null;
-}
-
-function getPrizeAmount(draw, matches, strongMatch) {
-  if (!draw || draw.id !== '3980' || draw.date !== '2026-10-31' || draw.strong !== 1 ||
-      [...draw.numbers].sort((x, y) => x - y).join(',') !== '1,3,16,21,32,36') return null;
-  const amounts = {3: [10, 39], 4: [56, 169], 5: [707, 5345]};
-  return amounts[matches]?.[strongMatch ? 1 : 0] ?? null;
-}
-
-function resetComparison() {
-  comparisonActive = false;
-  states.forEach((state, index) => render(index));
-}
-
-function makeButton(number, strong, tableIndex) {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'pick';
-  button.disabled = false;
-  button.textContent = number;
-  button.dataset.number = number;
-  button.setAttribute('aria-pressed', 'false');
-  button.setAttribute(
-    'aria-label',
-    `טבלה ${tableIndex + 1}, ${strong ? 'מספר חזק' : 'מספר'} ${number}`
-  );
-
-  button.addEventListener('click', () => {
-    const state = states[tableIndex];
-    if (state.fixed) return;
-
-    if (strong) {
-      state.strong = state.strong === number ? null : number;
-    } else if (state.numbers.has(number)) {
-      state.numbers.delete(number);
-    } else {
-      if (state.numbers.size === 6) {
-        message.textContent =
-          `בטבלה ${tableIndex + 1} כבר נבחרו 6 מספרים. בטל מספר כדי להחליפו.`;
-        return;
+      // ערבוב המספרים ובחירת שישה ללא חזרות.
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
       }
-      state.numbers.add(number);
-    }
 
-    state.source = '';
-    resetComparison();
-    message.textContent =
-      `טבלה ${tableIndex + 1}: נבחרו ${state.numbers.size} מתוך 6 מספרים` +
-      (state.strong === null
-        ? ', חסר מספר חזק.'
-        : `, המספר החזק הוא ${state.strong}.`);
-  });
+      const selected = pool.slice(0, 6).sort((a, b) => a - b);
 
-  return button;
-}
+      board.querySelectorAll('.cell').forEach(cell => {
+        const picked = selected.includes(Number(cell.dataset.number));
+        cell.classList.toggle('selected', picked);
+        cell.setAttribute(
+          'aria-label',
+          cell.dataset.number + (picked ? ' — נבחר' : '')
+        );
+      });
 
-for (let i = 0; i < 14; i++) {
-  const panel = document.createElement('section');
-  panel.className = 'panel';
-  panel.setAttribute('aria-label', `טבלה ${i + 1}`);
-
-  const fields = document.createElement('div');
-  fields.className = 'fields';
-
-  const numbers = document.createElement('div');
-  numbers.className = 'numbers';
-  numbers.setAttribute('role', 'group');
-  numbers.setAttribute('aria-label', 'בחירת שישה מספרים');
-
-  const title = document.createElement('div');
-  title.className = 'table-title';
-  title.textContent = `טבלה ${i + 1}`;
-  numbers.appendChild(title);
-
-  for (let number = 1; number <= 37; number++) {
-    numbers.appendChild(makeButton(number, false, i));
-  }
-
-  const strong = document.createElement('div');
-  strong.className = 'strong';
-  strong.setAttribute('role', 'group');
-  strong.setAttribute('aria-label', 'בחירת מספר חזק אחד');
-
-  const strongTitle = document.createElement('div');
-  strongTitle.className = 'strong-title';
-  strongTitle.textContent = 'חזק';
-  strong.appendChild(strongTitle);
-
-  for (let number = 1; number <= 7; number++) {
-    strong.appendChild(makeButton(number, true, i));
-  }
-
-  const status = document.createElement('div');
-  status.className = 'panel-status';
-
-  fields.append(numbers, strong);
-  panel.append(fields, status);
-  tables.appendChild(panel);
-
-  states.push({
-    numbers: new Set(), strong: null, fixed: false, source: '',
-    panel, title, numbersElement: numbers, strongElement: strong, status
-  });
-  render(i);
-}
-
-function render(index) {
-  const state = states[index];
-  state.title.textContent = `טבלה ${index + 1}` + (state.fixed ? ' · אישית' : '');
-  state.numbersElement.querySelectorAll('button').forEach(button => {
-    const number = Number(button.dataset.number);
-    button.disabled = state.fixed;
-    const selected = state.numbers.has(number);
-    const matched = comparisonActive && selected && latestDraw.numbers.includes(number);
-    button.setAttribute('aria-pressed', String(selected));
-    button.dataset.match = String(matched);
-    button.setAttribute('aria-label',
-      `טבלה ${index + 1}, מספר ${number}` + (matched ? ' · תואם להגרלה האחרונה' : ''));
-  });
-
-  state.strongElement.querySelectorAll('button').forEach(button => {
-    const number = Number(button.dataset.number);
-    button.disabled = state.fixed;
-    const selected = state.strong === number;
-    const matched = comparisonActive && selected && latestDraw.strong === number;
-    button.setAttribute('aria-pressed', String(selected));
-    button.dataset.match = String(matched);
-    button.setAttribute('aria-label',
-      `טבלה ${index + 1}, מספר חזק ${number}` + (matched ? ' · תואם להגרלה האחרונה' : ''));
-  });
-
-  const complete = state.numbers.size === 6 && state.strong !== null;
-  state.panel.dataset.complete = String(complete);
-  state.status.textContent =
-    `${state.numbers.size}/6 מספרים · ` +
-    (state.strong === null ? 'חסר מספר חזק' : `חזק: ${state.strong}`) +
-    (complete ? ' · הטבלה מלאה ✓' : '') +
-    (state.source ? ' · ' + state.source : '') +
-    (comparisonActive
-      ? ` · התאמות להגרלה ${latestDraw.id}: ${[...state.numbers].filter(n => latestDraw.numbers.includes(n)).length}/6 · ` +
-        (state.strong === latestDraw.strong ? 'המספר החזק תואם ✓' : 'המספר החזק לא תואם') +
-        (complete ? ' · ' + (prizeTier([...state.numbers].filter(n => latestDraw.numbers.includes(n)).length, state.strong === latestDraw.strong) ? 'דרגת פרס אפשרית: ' + prizeTier([...state.numbers].filter(n => latestDraw.numbers.includes(n)).length, state.strong === latestDraw.strong) + (() => { const amount = getPrizeAmount(latestDraw, [...state.numbers].filter(n => latestDraw.numbers.includes(n)).length, state.strong === latestDraw.strong); return amount === null ? ' · סכום לא זמין' : ` · ${amount.toLocaleString('he-IL')} ₪ בלוטו רגיל`; })() : 'ללא דרגת פרס') : ' · טבלה חלקית — אין בדיקת זכייה')
-      : '');
-}
-
-window.lotoForm = {
-  count: states.length - 1,
-  getPrizeAmount,
-  get hasRestoredTicket() { return restoredTicket; },
-  snapshot() {
-    return {version: 1, tables: states.map(state => ({
-      numbers: [...state.numbers].sort((a, b) => a - b), strong: state.strong
-    }))};
-  },
-  restore(saved) {
-    if (!saved || saved.version !== 1 || !Array.isArray(saved.tables) ||
-      saved.tables.length !== states.length || saved.tables.some(draw =>
-        !draw || !Array.isArray(draw.numbers) || draw.numbers.length > 6 ||
-        new Set(draw.numbers).size !== draw.numbers.length ||
-        draw.numbers.some(n => !Number.isInteger(n) || n < 1 || n > 37) ||
-        (draw.strong !== null && (!Number.isInteger(draw.strong) || draw.strong < 1 || draw.strong > 7))
-      ) || (states[0].fixed && (
-        JSON.stringify([...saved.tables[0].numbers].sort((a, b) => a - b)) !== JSON.stringify([...states[0].numbers].sort((a, b) => a - b)) ||
-        saved.tables[0].strong !== states[0].strong))
-    ) throw new Error('Invalid saved regular ticket');
-    comparisonActive = false;
-    restoredTicket = true;
-    saved.tables.forEach((draw, index) => {
-      states[index].numbers = new Set(draw.numbers);
-      states[index].strong = draw.strong;
-      states[index].source = states[index].fixed ? 'הטבלה האישית שלי' : 'נטען מהחשבון';
-      render(index);
+      result.textContent = 'המספרים שלך: ' + selected.join(' · ');
     });
-    message.textContent = 'הטופס השמור נטען. ניתן לבדוק אותו מול ההגרלה האחרונה.';
-  },
-  resetSaved() {
-    comparisonActive = false;
-    states.forEach((state, index) => {
-      state.numbers = new Set();
-      state.strong = null;
-      state.fixed = false;
-      state.source = '';
-      render(index);
-    });
-    message.textContent = 'הטופס נוקה לאחר יציאה מהחשבון.';
-  },
-  setPrivateFirst(draw) {
-    if (!draw || !Array.isArray(draw.numbers) || draw.numbers.length !== 6 ||
-      new Set(draw.numbers).size !== 6 || draw.numbers.some(n => !Number.isInteger(n) || n < 1 || n > 37) ||
-      !Number.isInteger(draw.strong) || draw.strong < 1 || draw.strong > 7) throw new Error('Invalid private first table');
-    states[0].numbers = new Set(draw.numbers);
-    states[0].strong = draw.strong;
-    states[0].fixed = true;
-    states[0].source = 'הטבלה האישית שלי';
-    resetComparison();
-  },
-  getFixedDraw() {
-    return {numbers: [...states[0].numbers], strong: states[0].strong};
-  },
-  getLatestDraw() {
-    return latestDraw ? {...latestDraw, numbers: [...latestDraw.numbers]} : null;
-  },
-  setLatestDraw(draw) {
-    if (!draw || typeof draw.id !== 'string' ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(draw.date) ||
-      !Array.isArray(draw.numbers) || draw.numbers.length !== 6 ||
-      new Set(draw.numbers).size !== 6 ||
-      draw.numbers.some(n => !Number.isInteger(n) || n < 1 || n > 37) ||
-      !Number.isInteger(draw.strong) || draw.strong < 1 || draw.strong > 7
-    ) throw new Error('Invalid latest draw');
-    latestDraw = {...draw, numbers: [...draw.numbers]};
-    resetComparison();
-  },
-  fill(draws, description) {
-    if (draws.length !== states.length - 1 || draws.some(draw =>
-      draw.numbers.length !== 6 || new Set(draw.numbers).size !== 6 ||
-      draw.numbers.some(n => !Number.isInteger(n) || n < 1 || n > 37) ||
-      !Number.isInteger(draw.strong) || draw.strong < 1 || draw.strong > 7
-    )) throw new Error('Invalid ticket data');
-    resetComparison();
-    draws.forEach((draw, drawIndex) => {
-      const index = drawIndex + 1;
-      states[index].numbers = new Set(draw.numbers);
-      states[index].strong = draw.strong;
-      states[index].source = draw.source;
-      render(index);
-    });
-    message.textContent = description;
-  }
-};
-
-document.getElementById('clear').addEventListener('click', () => {
-  resetComparison();
-  states.forEach((state, index) => {
-    if (state.fixed) return;
-    state.numbers.clear();
-    state.strong = null;
-    state.source = "";
-    render(index);
-  });
-  message.textContent = states[0].fixed ? 'הטבלאות נוקו. הטבלה האישית נשמרה.' : 'הטבלאות נוקו.';
-});
-
-document.getElementById('validate').addEventListener('click', () => {
-  if (!latestDraw) {
-    message.textContent = 'לא ניתן לבדוק התאמות: תוצאת ההגרלה האחרונה עדיין לא נטענה. יש לרענן ולנסות שוב.';
-    return;
-  }
-  comparisonActive = true;
-  let complete = 0;
-  let partial = 0;
-  let matchedTables = 0;
-  let winningTables = 0;
-  states.forEach((state, index) => {
-    if (state.numbers.size === 6 && state.strong !== null) complete++;
-    else if (state.numbers.size > 0 || state.strong !== null) partial++;
-    if (state.numbers.size === 6 && state.strong !== null && prizeTier([...state.numbers].filter(n => latestDraw.numbers.includes(n)).length, state.strong === latestDraw.strong)) winningTables++;
-    if ([...state.numbers].some(n => latestDraw.numbers.includes(n)) ||
-      state.strong === latestDraw.strong) matchedTables++;
-    render(index);
-  });
-  message.textContent =
-    `נבדק מול הגרלה ${latestDraw.id} מ־${latestDraw.date.split('-').reverse().join('/')}: ` +
-    `${complete} טבלאות מלאות` +
-    (partial ? `, ${partial} טבלאות חלקיות (יש להשלים)` : '') +
-    `. נמצאו התאמות ב־${matchedTables} טבלאות. מספרים תואמים מסומנים בירוק וב־✓. ` +
-    `${winningTables} טבלאות בדרגת פרס אפשרית. הסכומים המוצגים הם לטבלה בלוטו רגיל ללא דאבל או אקסטרה. הבדיקה להמחשה בלבד; יש לאמת כרטיס שנשלח אצל מפעל הפיס.`;
-});
-
-</script>
+  </script>
 </body>
 </html>
-
-
-
-
-
-
-
