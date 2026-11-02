@@ -12,13 +12,13 @@ window.lotoDiversity = {
       }
       return result;
     };
-    const selected = [fixed];
-    const used = new Set([key(fixed.numbers)]);
+    const selected = fixed.numbers.length ? [fixed] : [];
+    const used = new Set(fixed.numbers.length ? [key(fixed.numbers)] : []);
     const usage = Array(38).fill(0);
     const strongUsage = Array(8).fill(0);
     const record = draw => {
       draw.numbers.forEach(n => usage[n]++);
-      if (Number.isInteger(draw.strong) && draw.strong >= 1 && draw.strong <= 7) strongUsage[draw.strong]++;
+      if (draw.strong !== null) strongUsage[draw.strong]++;
     };
     record(fixed);
     const score = draw =>

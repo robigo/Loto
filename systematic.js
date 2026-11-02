@@ -11,7 +11,7 @@
   const list = document.getElementById('systematic-combinations');
   const checkResult = document.getElementById('systematic-check-result');
   const selected = new Set();
-  let strong = 5;
+  let strong = null;
   const format = new Intl.NumberFormat('he-IL');
 
   function combinations(numbers) {
@@ -56,23 +56,13 @@
       return;
     }
     const rows = combinations(numbers);
-    const prizeCounts = new Map();
-    let prizeTotal = 0;
-    let unknownPrize = false;
     rows.forEach(row => {
       const item = document.createElement('li');
       item.textContent = `${row.join(', ')} · חזק: ${strong}`;
       if (draw) {
         const matches = row.filter(number => draw.numbers.includes(number)).length;
-        const tier = matches >= 3 ? `${matches} מספרים${strong === draw.strong ? ' + חזק' : ''}` : null;
-        if (tier) {
-          prizeCounts.set(tier, (prizeCounts.get(tier) || 0) + 1);
-          const amount = window.lotoForm.getPrizeAmount(draw, matches, strong === draw.strong);
-          if (amount === null) unknownPrize = true; else prizeTotal += amount;
-        }
         item.textContent += ` · התאמות: ${matches}/6 · ` +
-          (strong === draw.strong ? 'המספר החזק תואם ✓' : 'המספר החזק לא תואם') +
-          (tier ? ` · דרגת פרס אפשרית: ${tier}` + (() => { const amount = window.lotoForm.getPrizeAmount(draw, matches, strong === draw.strong); return amount === null ? ' · סכום לא זמין' : ` · ${format.format(amount)} ₪ בלוטו רגיל`; })() : ' · ללא דרגת פרס');
+          (strong === draw.strong ? 'המספר החזק תואם ✓' : 'המספר החזק לא תואם');
       }
       list.appendChild(item);
     });
@@ -84,9 +74,7 @@
       checkResult.textContent = `נבדק מול הגרלה ${draw.id} מ־${draw.date.split('-').reverse().join('/')}: ` +
         `${matches} מתוך 6 המספרים שעלו נמצאים בבחירה שלך. ` +
         (strong === draw.strong ? 'המספר החזק תואם ✓. ' : 'המספר החזק לא תואם. ') +
-        (prizeCounts.size ? `צירופים בדרגת פרס אפשרית: ${[...prizeCounts].map(([tier, count]) => `${tier}: ${format.format(count)}`).join(' · ')}. ` : 'אין צירופים בדרגת פרס. ') +
-        (prizeCounts.size ? (unknownPrize ? 'לא ניתן לחשב סך כולל: חסרים סכומים לחלק מדרגות הפרס. ' : `סך הפרסים המחושב: ${format.format(prizeTotal)} ₪ בלוטו רגיל, ללא דאבל או אקסטרה. `) : '') +
-        'הבדיקה להמחשה בלבד; יש לאמת כרטיס שנשלח אצל מפעל הפיס.';
+        'התאמות מסומנות בירוק; פירוט לכל צירוף מוצג ברשימה. זו השוואת מספרים בלבד, לא אישור זכייה.';
     }
   }
 
@@ -125,6 +113,10 @@
   });
   document.getElementById('systematic-fixed').addEventListener('click', () => {
     const fixed = window.lotoForm.getFixedDraw();
+    if (fixed.numbers.length === 0 && fixed.strong === null) {
+      status.textContent = 'הטבלה הראשונה ריקה. בחרו בה מספרים או מלאו את הטופס השיטתי ישירות.';
+      return;
+    }
     selected.clear();
     fixed.numbers.forEach(number => selected.add(number));
     strong = fixed.strong;
@@ -160,29 +152,6 @@
     }
     render(draw);
   });
-  window.lotoSystematic = {
-    snapshot() {
-      return {version: 1, size: Number(size.value), numbers: [...selected].sort((a, b) => a - b), strong};
-    },
-    restore(saved) {
-      if (!saved || saved.version !== 1 || ![8, 9, 10, 11, 12].includes(saved.size) ||
-        !Array.isArray(saved.numbers) || saved.numbers.length > 12 ||
-        new Set(saved.numbers).size !== saved.numbers.length ||
-        saved.numbers.some(n => !Number.isInteger(n) || n < 1 || n > 37) ||
-        (saved.strong !== null && (!Number.isInteger(saved.strong) || saved.strong < 1 || saved.strong > 7))
-      ) throw new Error('Invalid saved systematic ticket');
-      size.value = String(saved.size);
-      selected.clear();
-      saved.numbers.forEach(n => selected.add(n));
-      strong = saved.strong;
-      render();
-    },
-    resetSaved() {
-      selected.clear(); strong = 5; size.value = '8'; render();
-    }
-  };
   render();
 })();
-
-
 

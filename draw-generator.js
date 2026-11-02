@@ -10,20 +10,6 @@
   const returnButton = document.getElementById('return-regular');
   let activeMode = 'past';
   let fillTicket;
-  function randomBelow(limit) {
-    const bound = Math.floor(0x100000000 / limit) * limit;
-    const value = new Uint32Array(1);
-    do { crypto.getRandomValues(value); } while (value[0] >= bound);
-    return value[0] % limit;
-  }
-  function simulatedDraw() {
-    const pool = Array.from({length: 37}, (_, i) => i + 1);
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = randomBelow(i + 1);
-      [pool[i], pool[j]] = [pool[j], pool[i]];
-    }
-    return {numbers: pool.slice(0, 6).sort((a, b) => a - b), strong: randomBelow(7) + 1, source: 'בחירה אקראית כמו בהדמיה'};
-  }
 
   function selectTab(selected, refill = true) {
     tabs.forEach(tab => {
@@ -39,18 +25,16 @@
     status.hidden = isAnalysis || isSystematic;
     returnButton.hidden = !isAnalysis && !isSystematic;
     if (!isAnalysis && !isSystematic) {
-      activeMode = selected.id === 'past-tab' ? 'past' : selected.id === 'random-tab' ? 'random' : 'new';
+      activeMode = selected.id === 'past-tab' ? 'past' : 'new';
       ticket.setAttribute('aria-labelledby', selected.id);
       document.getElementById('mode-description').textContent = activeMode === 'past'
         ? 'טבלאות 2–14 מתמלאות מהגרלות עבר ללא צירופים כפולים ובניסיון לצמצם חפיפה, עם המספר החזק המקורי. אפשר לשנות ידנית או להגריל שוב.'
-        : activeMode === 'random'
-          ? 'טבלאות 2–14 מתמלאות בהגרלה אקראית נפרדת לכל טבלה, כמו בהדמיה. אפשר לשנות ידנית או להגריל שוב.'
-          : 'טבלאות 2–14 מתמלאות בצירופים שונים שלא נמצאו בכל ההגרלות בקובץ, ובפיזור מספרים חזקים. אפשר לשנות ידנית או להגריל שוב.';
+        : 'טבלאות 2–14 מתמלאות בצירופים שונים שלא נמצאו בכל ההגרלות בקובץ, ובפיזור מספרים חזקים. אפשר לשנות ידנית או להגריל שוב.';
       if (fillTicket && refill) fillTicket();
     }
   }
   returnButton.addEventListener('click', () => {
-    const tab = document.getElementById(activeMode === 'past' ? 'past-tab' : activeMode === 'random' ? 'random-tab' : 'new-tab');
+    const tab = document.getElementById(activeMode === 'past' ? 'past-tab' : 'new-tab');
     selectTab(tab, false);
     tab.focus();
   });
@@ -65,12 +49,6 @@
       if (target) { event.preventDefault(); selectTab(target); target.focus(); }
     });
   });
-  window.lotoNavigation = {
-    showSaved(kind) {
-      const id = kind === 'systematic' ? 'systematic-tab' : (activeMode === 'past' ? 'past-tab' : 'new-tab');
-      selectTab(document.getElementById(id), false);
-    }
-  };
   const key = numbers => [...numbers].sort((a, b) => a - b).join(',');
   try {
     const response = await fetch('data/history.json', {cache: 'no-store'});
@@ -92,12 +70,6 @@
 
     fillTicket = () => {
       try {
-        if (activeMode === 'random') {
-          const draws = Array.from({length: window.lotoForm.count}, simulatedDraw);
-          window.lotoForm.fill(draws, 'מולאו 13 טבלאות בהגרלה אקראית, כמו בהדמיה.');
-          status.textContent = 'כל טבלה הוגרלה בנפרד. בחירה אקראית אינה מנבאת תוצאות.';
-          return;
-        }
         const result = window.lotoDiversity.generate({
           history: eligible, historicalKeys, count: window.lotoForm.count,
           fixed: window.lotoForm.getFixedDraw(), mode: activeMode
@@ -105,7 +77,7 @@
         window.lotoForm.fill(result.draws, activeMode === 'past'
           ? 'מולאו 13 טבלאות שונות מהגרלות עבר, עם המספר החזק המקורי ובפיזור בין הטבלאות.'
           : 'מולאו 13 טבלאות שונות שלא נמצאו בהיסטוריה, בפיזור מספרים ומספרים חזקים.');
-        status.textContent = `במילוי האחרון של 14 הטבלאות: ${result.covered} מתוך 37 מספרים. חפיפה מרבית בין שתי טבלאות: ${result.maxOverlap} מספרים. ההשוואה מבוססת על ${history.length.toLocaleString('he-IL')} הגרלות. אין בכך חיזוי תוצאות.`;
+        status.textContent = `במילוי האחרון: ${result.covered} מתוך 37 מספרים. חפיפה מרבית בין שתי טבלאות: ${result.maxOverlap} מספרים. ההשוואה מבוססת על ${history.length.toLocaleString('he-IL')} הגרלות. אין בכך חיזוי תוצאות.`;
       } catch (error) {
         status.textContent = 'לא ניתן להשלים את ההגרלה. הטופס הקודם נשמר; נסו להגריל שוב.';
       }
@@ -113,7 +85,7 @@
     fillButton.addEventListener('click', () => fillTicket());
     fillButton.disabled = false;
     status.textContent = `נטענו ${history.length.toLocaleString('he-IL')} הגרלות.`;
-    selectTab(tabs.find(tab => tab.getAttribute('aria-selected') === 'true'), !window.lotoForm.hasRestoredTicket);
+    selectTab(tabs.find(tab => tab.getAttribute('aria-selected') === 'true'));
   } catch (error) {
     document.getElementById('latest-draw').textContent = 'לא ניתן לטעון את תוצאת ההגרלה האחרונה במאגר.';
     status.textContent = 'לא ניתן לטעון את ההיסטוריה. המילוי האוטומטי מושבת; אפשר למלא ידנית או לרענן ולנסות שוב.';
