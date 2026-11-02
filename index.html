@@ -119,6 +119,7 @@ footer {
 <script src="ticket-diversity.js?v=20261028-private" defer></script>
 <script src="draw-generator.js?v=google-account-20261028" defer></script>
 <script src="systematic.js?v=prize-amounts-3980" defer></script>
+<script src="draw-simulation.js?v=20261102" defer></script>
 <link rel="stylesheet" href="account.css?v=20261028">
 <script type="module" src="account.js?v=20261028-private"></script>
 </head>
@@ -170,9 +171,11 @@ footer {
   <button type="button" id="random" disabled>הגרלה נוספת ל־13 הטבלאות</button>
   <button type="button" id="clear" class="secondary">ניקוי 13 הטבלאות</button>
   <button type="button" id="validate" class="secondary">בדיקת הטופס</button>
+  <button type="button" id="simulate-regular" class="secondary">הדמיית הגרלה</button>
 </div>
 
 <div class="notice">
+  <p id="simulation-regular-result" role="status" aria-live="polite"></p>
   <p id="message" role="status" aria-live="polite">
     הטווח הוא 1–37, והמספר החזק הוא 1–7.
   </p>
@@ -244,11 +247,13 @@ footer {
     <button type="button" id="systematic-random">מילוי אקראי</button>
     <button type="button" id="systematic-clear" class="secondary">ניקוי הטופס השיטתי</button>
     <button type="button" id="systematic-validate" class="secondary">בדיקת הטופס</button>
+    <button type="button" id="simulate-systematic" class="secondary">הדמיית הגרלה</button>
   </div>
   <p id="systematic-status" role="status" aria-live="polite"></p>
   <p id="systematic-selection"></p>
   <p id="systematic-summary"></p>
   <p id="systematic-check-result" role="status" aria-live="polite"></p>
+  <p id="simulation-systematic-result" role="status" aria-live="polite"></p>
   <details id="systematic-details" hidden>
     <summary>הצג את כל הצירופים</summary>
     <ol id="systematic-combinations" class="systematic-combinations"></ol>
