@@ -56,13 +56,17 @@
       return;
     }
     const rows = combinations(numbers);
+    const prizeCounts = new Map();
     rows.forEach(row => {
       const item = document.createElement('li');
       item.textContent = `${row.join(', ')} · חזק: ${strong}`;
       if (draw) {
         const matches = row.filter(number => draw.numbers.includes(number)).length;
+        const tier = matches >= 3 ? `${matches} מספרים${strong === draw.strong ? ' + חזק' : ''}` : null;
+        if (tier) prizeCounts.set(tier, (prizeCounts.get(tier) || 0) + 1);
         item.textContent += ` · התאמות: ${matches}/6 · ` +
-          (strong === draw.strong ? 'המספר החזק תואם ✓' : 'המספר החזק לא תואם');
+          (strong === draw.strong ? 'המספר החזק תואם ✓' : 'המספר החזק לא תואם') +
+          (tier ? ` · דרגת פרס אפשרית: ${tier}` : ' · ללא דרגת פרס');
       }
       list.appendChild(item);
     });
@@ -74,7 +78,8 @@
       checkResult.textContent = `נבדק מול הגרלה ${draw.id} מ־${draw.date.split('-').reverse().join('/')}: ` +
         `${matches} מתוך 6 המספרים שעלו נמצאים בבחירה שלך. ` +
         (strong === draw.strong ? 'המספר החזק תואם ✓. ' : 'המספר החזק לא תואם. ') +
-        'התאמות מסומנות בירוק; פירוט לכל צירוף מוצג ברשימה. זו השוואת מספרים בלבד, לא אישור זכייה.';
+        (prizeCounts.size ? `צירופים בדרגת פרס אפשרית: ${[...prizeCounts].map(([tier, count]) => `${tier}: ${format.format(count)}`).join(' · ')}. ` : 'אין צירופים בדרגת פרס. ') +
+        'התאמות מסומנות בירוק. הבדיקה להמחשה בלבד, ללא סכומי זכייה; יש לאמת כרטיס שנשלח אצל מפעל הפיס.';
     }
   }
 
@@ -171,4 +176,5 @@
   };
   render();
 })();
+
 

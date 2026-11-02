@@ -52,6 +52,11 @@ const deferred = () => { let resolve; const promise = new Promise(r => { resolve
   p.systematic.restore(systematic);
   assert.deepEqual(plain(p.systematic.snapshot()), systematic);
   assert.equal(p.elements['systematic-combinations'].children.length, 28);
+  p.form.setLatestDraw({id: '9999', date: '2026-11-01', numbers: [1, 2, 3, 4, 5, 6], strong: 5});
+  p.elements['systematic-validate'].events.click();
+  assert.match(p.elements['systematic-check-result'].textContent, /6 מספרים \+ חזק: 1/);
+  assert.match(p.elements['systematic-check-result'].textContent, /5 מספרים \+ חזק: 12/);
+  assert.match(p.elements['systematic-check-result'].textContent, /4 מספרים \+ חזק: 15/);
   assert.throws(() => p.systematic.restore({...systematic, strong: 8}));
   assert.deepEqual(plain(p.systematic.snapshot()), systematic);
   // A late history request must not regenerate a restored form.
@@ -124,4 +129,5 @@ const deferred = () => { let resolve; const promise = new Promise(r => { resolve
   assert.match(guest.elements['account-status'].textContent, /עדיין אינה פעילה/);
   console.log('PASS: snapshots, malformed data, fixed row, delayed history, navigation, Google redirect, ownership filters, failures, account-switch races, logout, guest mode.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
+
 

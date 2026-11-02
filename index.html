@@ -118,7 +118,7 @@ footer {
 <script src="frequency.js" defer></script>
 <script src="ticket-diversity.js?v=20261028-private" defer></script>
 <script src="draw-generator.js?v=google-account-20261028" defer></script>
-<script src="systematic.js?v=google-account-20261028" defer></script>
+<script src="systematic.js?v=prize-check-20261102" defer></script>
 <link rel="stylesheet" href="account.css?v=20261028">
 <script type="module" src="account.js?v=20261028-private"></script>
 </head>
@@ -264,6 +264,10 @@ let latestDraw = null;
 let comparisonActive = false;
 let restoredTicket = false;
 
+function prizeTier(matches, strong) {
+  return matches >= 3 ? `${matches} מספרים${strong ? ' + חזק' : ''}` : null;
+}
+
 function resetComparison() {
   comparisonActive = false;
   states.forEach((state, index) => render(index));
@@ -396,7 +400,7 @@ function render(index) {
     (comparisonActive
       ? ` · התאמות להגרלה ${latestDraw.id}: ${[...state.numbers].filter(n => latestDraw.numbers.includes(n)).length}/6 · ` +
         (state.strong === latestDraw.strong ? 'המספר החזק תואם ✓' : 'המספר החזק לא תואם') +
-        (complete ? '' : ' · טבלה חלקית')
+        (complete ? ' · ' + (prizeTier([...state.numbers].filter(n => latestDraw.numbers.includes(n)).length, state.strong === latestDraw.strong) ? 'דרגת פרס אפשרית: ' + prizeTier([...state.numbers].filter(n => latestDraw.numbers.includes(n)).length, state.strong === latestDraw.strong) : 'ללא דרגת פרס') : ' · טבלה חלקית — אין בדיקת זכייה')
       : '');
 }
 
@@ -506,9 +510,11 @@ document.getElementById('validate').addEventListener('click', () => {
   let complete = 0;
   let partial = 0;
   let matchedTables = 0;
+  let winningTables = 0;
   states.forEach((state, index) => {
     if (state.numbers.size === 6 && state.strong !== null) complete++;
     else if (state.numbers.size > 0 || state.strong !== null) partial++;
+    if (state.numbers.size === 6 && state.strong !== null && prizeTier([...state.numbers].filter(n => latestDraw.numbers.includes(n)).length, state.strong === latestDraw.strong)) winningTables++;
     if ([...state.numbers].some(n => latestDraw.numbers.includes(n)) ||
       state.strong === latestDraw.strong) matchedTables++;
     render(index);
@@ -518,12 +524,13 @@ document.getElementById('validate').addEventListener('click', () => {
     `${complete} טבלאות מלאות` +
     (partial ? `, ${partial} טבלאות חלקיות (יש להשלים)` : '') +
     `. נמצאו התאמות ב־${matchedTables} טבלאות. מספרים תואמים מסומנים בירוק וב־✓. ` +
-    'זו השוואת מספרים בלבד, לא אישור זכייה.';
+    `${winningTables} טבלאות בדרגת פרס אפשרית. הבדיקה היא להמחשה בלבד, ללא סכומי זכייה; יש לאמת כרטיס שנשלח אצל מפעל הפיס.`;
 });
 
 </script>
 </body>
 </html>
+
 
 
 

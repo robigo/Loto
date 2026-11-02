@@ -57,6 +57,9 @@ const picks = (state, strong = false) => (strong ? state.strongElement : state.n
   assert.deepEqual(marked(states[1].strongElement), [5]);
   assert.deepEqual(marked(states[2].numbersElement), [2, 6]);
   assert.match(states[2].status.textContent, /טבלה חלקית/);
+  assert.match(states[1].status.textContent, /דרגת פרס אפשרית: 6 מספרים \+ חזק/);
+  assert.match(states[2].status.textContent, /אין בדיקת זכייה/);
+  assert.match(states[0].status.textContent, /ללא דרגת פרס/);
   assert.deepEqual(marked(states[3].numbersElement), []);
   assert.deepEqual(marked(states[3].strongElement), []);
   assert.match(states[3].status.textContent, /0\/6/);
@@ -85,4 +88,5 @@ const picks = (state, strong = false) => (strong ? state.strongElement : state.n
   assert.match(failed.els.message.textContent, /לא ניתן לבדוק התאמות/);
   console.log('PASS: latest draw, full/partial/zero/strong-only matches, fixed table, edit/refill/tab/clear invalidation, missing data.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
+
 
