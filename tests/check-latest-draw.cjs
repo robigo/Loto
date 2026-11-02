@@ -79,6 +79,19 @@ const picks = (state, strong = false) => (strong ? state.strongElement : state.n
   els.validate.events.click();
   form.setLatestDraw({...latest, id: '3980', date: '2026-10-31', strong: 1});
   assert.deepEqual(marked(states[0].strongElement), []);
+  const published = {id: '3980', date: '2026-10-31', numbers: [1, 3, 16, 21, 32, 36], strong: 1};
+  form.setLatestDraw(published);
+  assert.equal(form.getPrizeAmount(published, 3, false), 10);
+  assert.equal(form.getPrizeAmount(published, 3, true), 39);
+  assert.equal(form.getPrizeAmount(published, 4, false), 56);
+  assert.equal(form.getPrizeAmount(published, 4, true), 169);
+  assert.equal(form.getPrizeAmount(published, 5, false), 707);
+  assert.equal(form.getPrizeAmount(published, 5, true), 5345);
+  assert.equal(form.getPrizeAmount(published, 6, true), null);
+  assert.equal(form.getPrizeAmount({...published, id: '3981'}, 3, true), null);
+  states[1].numbers = new Set([1, 3, 16, 2, 4, 5]); states[1].strong = 1;
+  els.validate.events.click();
+  assert.match(states[1].status.textContent, /39 ₪ בלוטו רגיל/);
   els.validate.events.click();
   assert.match(els.message.textContent, /3980/);
   assert.deepEqual(marked(states[0].strongElement), []);
@@ -88,5 +101,6 @@ const picks = (state, strong = false) => (strong ? state.strongElement : state.n
   assert.match(failed.els.message.textContent, /לא ניתן לבדוק התאמות/);
   console.log('PASS: latest draw, full/partial/zero/strong-only matches, fixed table, edit/refill/tab/clear invalidation, missing data.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
+
 
 

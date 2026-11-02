@@ -57,16 +57,22 @@
     }
     const rows = combinations(numbers);
     const prizeCounts = new Map();
+    let prizeTotal = 0;
+    let unknownPrize = false;
     rows.forEach(row => {
       const item = document.createElement('li');
       item.textContent = `${row.join(', ')} · חזק: ${strong}`;
       if (draw) {
         const matches = row.filter(number => draw.numbers.includes(number)).length;
         const tier = matches >= 3 ? `${matches} מספרים${strong === draw.strong ? ' + חזק' : ''}` : null;
-        if (tier) prizeCounts.set(tier, (prizeCounts.get(tier) || 0) + 1);
+        if (tier) {
+          prizeCounts.set(tier, (prizeCounts.get(tier) || 0) + 1);
+          const amount = window.lotoForm.getPrizeAmount(draw, matches, strong === draw.strong);
+          if (amount === null) unknownPrize = true; else prizeTotal += amount;
+        }
         item.textContent += ` · התאמות: ${matches}/6 · ` +
           (strong === draw.strong ? 'המספר החזק תואם ✓' : 'המספר החזק לא תואם') +
-          (tier ? ` · דרגת פרס אפשרית: ${tier}` : ' · ללא דרגת פרס');
+          (tier ? ` · דרגת פרס אפשרית: ${tier}` + (() => { const amount = window.lotoForm.getPrizeAmount(draw, matches, strong === draw.strong); return amount === null ? ' · סכום לא זמין' : ` · ${format.format(amount)} ₪ בלוטו רגיל`; })() : ' · ללא דרגת פרס');
       }
       list.appendChild(item);
     });
@@ -79,7 +85,8 @@
         `${matches} מתוך 6 המספרים שעלו נמצאים בבחירה שלך. ` +
         (strong === draw.strong ? 'המספר החזק תואם ✓. ' : 'המספר החזק לא תואם. ') +
         (prizeCounts.size ? `צירופים בדרגת פרס אפשרית: ${[...prizeCounts].map(([tier, count]) => `${tier}: ${format.format(count)}`).join(' · ')}. ` : 'אין צירופים בדרגת פרס. ') +
-        'התאמות מסומנות בירוק. הבדיקה להמחשה בלבד, ללא סכומי זכייה; יש לאמת כרטיס שנשלח אצל מפעל הפיס.';
+        (prizeCounts.size ? (unknownPrize ? 'לא ניתן לחשב סך כולל: חסרים סכומים לחלק מדרגות הפרס. ' : `סך הפרסים המחושב: ${format.format(prizeTotal)} ₪ בלוטו רגיל, ללא דאבל או אקסטרה. `) : '') +
+        'הבדיקה להמחשה בלבד; יש לאמת כרטיס שנשלח אצל מפעל הפיס.';
     }
   }
 
@@ -176,5 +183,6 @@
   };
   render();
 })();
+
 
 

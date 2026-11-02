@@ -57,6 +57,12 @@ const deferred = () => { let resolve; const promise = new Promise(r => { resolve
   assert.match(p.elements['systematic-check-result'].textContent, /6 מספרים \+ חזק: 1/);
   assert.match(p.elements['systematic-check-result'].textContent, /5 מספרים \+ חזק: 12/);
   assert.match(p.elements['systematic-check-result'].textContent, /4 מספרים \+ חזק: 15/);
+  assert.match(p.elements['systematic-check-result'].textContent, /חסרים סכומים/);
+  p.form.setLatestDraw({id: '3980', date: '2026-10-31', numbers: [1, 3, 16, 21, 32, 36], strong: 1});
+  p.systematic.restore({version: 1, size: 8, numbers: [1, 2, 3, 4, 5, 6, 7, 16], strong: 1});
+  p.elements['systematic-validate'].events.click();
+  assert.match(p.elements['systematic-check-result'].textContent, /390 ₪/);
+  p.systematic.restore(systematic);
   assert.throws(() => p.systematic.restore({...systematic, strong: 8}));
   assert.deepEqual(plain(p.systematic.snapshot()), systematic);
   // A late history request must not regenerate a restored form.
@@ -129,5 +135,6 @@ const deferred = () => { let resolve; const promise = new Promise(r => { resolve
   assert.match(guest.elements['account-status'].textContent, /עדיין אינה פעילה/);
   console.log('PASS: snapshots, malformed data, fixed row, delayed history, navigation, Google redirect, ownership filters, failures, account-switch races, logout, guest mode.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
+
 
 

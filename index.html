@@ -118,7 +118,7 @@ footer {
 <script src="frequency.js" defer></script>
 <script src="ticket-diversity.js?v=20261028-private" defer></script>
 <script src="draw-generator.js?v=google-account-20261028" defer></script>
-<script src="systematic.js?v=prize-check-20261102" defer></script>
+<script src="systematic.js?v=prize-amounts-3980" defer></script>
 <link rel="stylesheet" href="account.css?v=20261028">
 <script type="module" src="account.js?v=20261028-private"></script>
 </head>
@@ -268,6 +268,13 @@ function prizeTier(matches, strong) {
   return matches >= 3 ? `${matches} מספרים${strong ? ' + חזק' : ''}` : null;
 }
 
+function getPrizeAmount(draw, matches, strongMatch) {
+  if (!draw || draw.id !== '3980' || draw.date !== '2026-10-31' || draw.strong !== 1 ||
+      [...draw.numbers].sort((x, y) => x - y).join(',') !== '1,3,16,21,32,36') return null;
+  const amounts = {3: [10, 39], 4: [56, 169], 5: [707, 5345]};
+  return amounts[matches]?.[strongMatch ? 1 : 0] ?? null;
+}
+
 function resetComparison() {
   comparisonActive = false;
   states.forEach((state, index) => render(index));
@@ -400,12 +407,13 @@ function render(index) {
     (comparisonActive
       ? ` · התאמות להגרלה ${latestDraw.id}: ${[...state.numbers].filter(n => latestDraw.numbers.includes(n)).length}/6 · ` +
         (state.strong === latestDraw.strong ? 'המספר החזק תואם ✓' : 'המספר החזק לא תואם') +
-        (complete ? ' · ' + (prizeTier([...state.numbers].filter(n => latestDraw.numbers.includes(n)).length, state.strong === latestDraw.strong) ? 'דרגת פרס אפשרית: ' + prizeTier([...state.numbers].filter(n => latestDraw.numbers.includes(n)).length, state.strong === latestDraw.strong) : 'ללא דרגת פרס') : ' · טבלה חלקית — אין בדיקת זכייה')
+        (complete ? ' · ' + (prizeTier([...state.numbers].filter(n => latestDraw.numbers.includes(n)).length, state.strong === latestDraw.strong) ? 'דרגת פרס אפשרית: ' + prizeTier([...state.numbers].filter(n => latestDraw.numbers.includes(n)).length, state.strong === latestDraw.strong) + (() => { const amount = getPrizeAmount(latestDraw, [...state.numbers].filter(n => latestDraw.numbers.includes(n)).length, state.strong === latestDraw.strong); return amount === null ? ' · סכום לא זמין' : ` · ${amount.toLocaleString('he-IL')} ₪ בלוטו רגיל`; })() : 'ללא דרגת פרס') : ' · טבלה חלקית — אין בדיקת זכייה')
       : '');
 }
 
 window.lotoForm = {
   count: states.length - 1,
+  getPrizeAmount,
   get hasRestoredTicket() { return restoredTicket; },
   snapshot() {
     return {version: 1, tables: states.map(state => ({
@@ -524,12 +532,13 @@ document.getElementById('validate').addEventListener('click', () => {
     `${complete} טבלאות מלאות` +
     (partial ? `, ${partial} טבלאות חלקיות (יש להשלים)` : '') +
     `. נמצאו התאמות ב־${matchedTables} טבלאות. מספרים תואמים מסומנים בירוק וב־✓. ` +
-    `${winningTables} טבלאות בדרגת פרס אפשרית. הבדיקה היא להמחשה בלבד, ללא סכומי זכייה; יש לאמת כרטיס שנשלח אצל מפעל הפיס.`;
+    `${winningTables} טבלאות בדרגת פרס אפשרית. הסכומים המוצגים הם לטבלה בלוטו רגיל ללא דאבל או אקסטרה. הבדיקה להמחשה בלבד; יש לאמת כרטיס שנשלח אצל מפעל הפיס.`;
 });
 
 </script>
 </body>
 </html>
+
 
 
 
