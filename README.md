@@ -27,8 +27,24 @@ results commit. A push to `main` then triggers the GitHub Pages publication.
 
 If Pais blocks the GitHub runner or changes the CSV format, the run fails without publishing.
 An operator may download the CSV from https://www.pais.co.il/lotto/archive.aspx and import it.
-Direct Pais requests from the current Codex environment return HTTP 403, so the first scheduled
-GitHub Actions fetch still needs to confirm that the runner can retrieve the CSV.
+The downloader makes up to three attempts with a 45-second socket timeout per blocking
+operation and 2/4-second backoff. Only timeouts, connection/DNS errors and HTTP
+408/429/500/502/503/504 are retried. Numeric Retry-After values up to 30 seconds are
+honored; longer or date-form values require a later run. HTTP 403/404, TLS errors,
+redirects, oversized/incomplete responses and invalid CSV fail immediately. The existing
+five-minute Actions job timeout remains the overall execution limit.
+
+To validate a download and its proposed merge without writing either dataset:
+
+```sh
+python scripts/update_results.py --check
+python scripts/update_results.py --csv /path/to/pais-results.csv --check
+```
+
+`--check` reports `updated: false` and `wouldUpdate`; it still validates agreement
+between both existing datasets. It does not publish or commit anything.
+See [the download investigation](docs/RESULTS_DOWNLOAD_REVIEW.md) for current limitations
+and the approval steps before enabling publication of this change.
 
 The website shows the latest draw in its stored history, rather than a hard-coded date.
 Historical frequencies and unseen combinations do not predict future lottery results.
