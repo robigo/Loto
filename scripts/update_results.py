@@ -6,11 +6,25 @@ import io
 import json
 import os
 from pathlib import Path
+import socket
+import ssl
+import sys
 import tempfile
+import time
+import urllib.error
 import urllib.request
 
 SOURCE = 'https://www.pais.co.il/lotto/lotto_resultsDownload.aspx'
 ROOT = Path(__file__).resolve().parents[1]
+ATTEMPT_TIMEOUT = 45
+MAX_ATTEMPTS = 3
+MAX_BYTES = 5_000_000
+RETRY_STATUS = {408, 429, 500, 502, 503, 504}
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise ValueError('Unexpected source redirect; manual verification required')
 
 
 def parse_csv(raw):
@@ -36,6 +50,8 @@ def parse_csv(raw):
         identifier = row[0].strip()
         if not identifier.isascii() or not identifier.isdigit():
             raise ValueError('Invalid draw ID')
+        if int(identifier) <= 0 or str(int(identifier)) != identifier:
+            raise ValueError('Noncanonical draw ID')
         date = dt.datetime.strptime(row[1].strip(), '%d/%m/%Y').date()
         if date > dt.datetime.now(dt.timezone.utc).date():
             raise ValueError('Future draw date')
@@ -90,17 +106,48 @@ def merge_results(history, incoming):
 
 
 def fetch_csv():
+    # No alternate URL is enabled until its provenance and payload are verified.
+    # Reject redirects before contacting another endpoint; keep TLS verification.
+    opener = urllib.request.build_opener(NoRedirect())
     request = urllib.request.Request(SOURCE, headers={'User-Agent': 'LotoResultsUpdater/1.0', 'Accept': 'text/csv,*/*;q=0.1'})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        if response.url.split('?', 1)[0] != SOURCE:
-            raise ValueError('Unexpected source redirect')
-        raw = response.read(5_000_001)
-    if len(raw) > 5_000_000:
-        raise ValueError('Source response too large')
-    return raw
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        delay = 2 ** attempt
+        try:
+            with opener.open(request, timeout=ATTEMPT_TIMEOUT) as response:
+                if response.url != SOURCE:
+                    raise ValueError('Unexpected source URL')
+                raw = response.read(MAX_BYTES + 1)
+                if len(raw) > MAX_BYTES:
+                    raise ValueError('Source response too large')
+                length = response.headers.get('Content-Length')
+                if length is not None and int(length) != len(raw):
+                    raise ValueError('Incomplete source response')
+            parse_csv(raw)  # HTML, empty and malformed CSV are not transient failures.
+            return raw
+        except urllib.error.HTTPError as error:
+            if error.code not in RETRY_STATUS:
+                raise
+            retry_after = error.headers.get('Retry-After') if error.headers else None
+            if retry_after is not None:
+                # Do not retry earlier than instructed, or wait without a bound.
+                if not retry_after.isdigit() or int(retry_after) > 30:
+                    raise RuntimeError('Retry-After requires a later run') from error
+                delay = max(delay, int(retry_after))
+            failure = 'HTTP ' + str(error.code)
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as error:
+            reason = getattr(error, 'reason', error)
+            if isinstance(reason, ssl.SSLError) or not isinstance(
+                    reason, (TimeoutError, ConnectionError, socket.gaierror)):
+                raise
+            failure = type(reason).__name__
+        print(f'Pais download attempt {attempt}/{MAX_ATTEMPTS} failed: {failure}', file=sys.stderr)
+        if attempt == MAX_ATTEMPTS:
+            raise RuntimeError(f'Pais CSV unavailable after {MAX_ATTEMPTS} attempts ({failure}); '
+                               'no verified fallback is enabled. Download the CSV from the Pais archive on an accessible network.')
+        time.sleep(delay)
 
 
-def update(raw, root=ROOT):
+def update(raw, root=ROOT, dry_run=False):
     history_path = root / 'data/history.json'
     draws_path = root / 'data/draws.json'
     history = json.loads(history_path.read_text(encoding='utf-8'))
@@ -108,12 +155,14 @@ def update(raw, root=ROOT):
     merged, frequency = merge_results(history, parse_csv(raw))
     latest = max(merged, key=lambda draw: draw['date'])
     result = dict(updated=frequency is not None, latestId=latest['id'], latestDate=latest['date'], source=SOURCE)
-    if frequency is None:
-        return result
     projected_existing = [dict(date=draw['date'], numbers=draw['numbers']) for draw in sorted(history, key=lambda draw: draw['date'])
                           if draw['date'] >= '2010-01-01']
     if projected_existing != existing_frequency:
         raise ValueError('Existing datasets disagree; manual review required')
+    if dry_run:
+        return {**result, 'updated': False, 'wouldUpdate': frequency is not None}
+    if frequency is None:
+        return result
     # Validate everything first. GitHub commits both files together only after success.
     staged = []
     try:
@@ -133,8 +182,9 @@ def update(raw, root=ROOT):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--csv', type=Path, help='Import a downloaded Pais CSV instead of making a network request')
+    parser.add_argument('--check', action='store_true', help='Validate download and merge without writing either dataset')
     args = parser.parse_args()
     try:
-        print(json.dumps(update(args.csv.read_bytes() if args.csv else fetch_csv()), ensure_ascii=False))
+        print(json.dumps(update(args.csv.read_bytes() if args.csv else fetch_csv(), dry_run=args.check), ensure_ascii=False))
     except Exception as error:
         raise SystemExit('Update failed; do not publish data changes: ' + str(error)) from error
