@@ -19,17 +19,18 @@ except OSError as error:
     print(json.dumps({"stage": "dns", "error": str(error)}), flush=True)
 
 with tempfile.TemporaryDirectory() as temp:
-    for label, flags in [("default", []), ("ipv4", ["--ipv4"])]:
+    for label, source, flags in [("default", SOURCE, []), ("ipv4", SOURCE, ["--ipv4"]),
+                                 ("official-apex", SOURCE.replace("www.pais.co.il", "pais.co.il"), [])]:
         target = Path(temp) / (label + ".csv")
         command = ["curl", *flags, "--silent", "--show-error", "--proto", "=https",
                    "--connect-timeout", "10", "--max-time", "25", "--max-filesize", "5000000",
                    "--user-agent", "LotoResultsUpdater/1.0", "--header", "Accept: text/csv,*/*;q=0.1",
                    "--output", str(target), "--write-out",
                    "status=%{http_code} ip=%{remote_ip} dns=%{time_namelookup} connect=%{time_connect} tls=%{time_appconnect} first_byte=%{time_starttransfer} total=%{time_total}",
-                   SOURCE]
+                   source]
         try:
             result = subprocess.run(command, capture_output=True, text=True, timeout=30)
-            print(json.dumps({"transport": label, "exit": result.returncode,
+            print(json.dumps({"transport": label, "source": source, "exit": result.returncode,
                               "timings": result.stdout, "error": result.stderr}), flush=True)
             if result.returncode == 0:
                 raw = target.read_bytes()
