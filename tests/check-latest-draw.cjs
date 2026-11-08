@@ -24,7 +24,7 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const latest = {id: '3979', date: '2026-10-27', numbers: [2, 6, 7, 13, 22, 35], strong: 5};
 function setup(ok = true) {
   const els = Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m => [m[1], new Element('div', m[1])]));
-  const tabs = ['past-tab', 'new-tab', 'random-tab', 'analysis-tab'].map(id => els[id]);
+  const tabs = ['past-tab', 'new-tab', 'analysis-tab', 'systematic-tab'].map(id => els[id]);
   tabs[0].setAttribute('aria-selected', 'true');
   const ctx = vm.createContext({crypto: require('node:crypto').webcrypto, window: {}, document: {
     getElementById: id => els[id], createElement: tag => new Element(tag), querySelectorAll: () => tabs
@@ -42,16 +42,18 @@ const picks = (state, strong = false) => (strong ? state.strongElement : state.n
   const {els, ctx, states, form} = setup();
   els.validate.events.click();
   assert.match(els.message.textContent, /עדיין לא נטענה/);
-  form.setPrivateFirst({numbers: [1, 8, 10, 12, 14, 23], strong: 5});
+  // Select the owner's first table through the public controls.
+  for (const n of [1, 8, 10, 12, 14, 23]) picks(states[0]).find(b => Number(b.dataset.number) === n).events.click();
+  picks(states[0], true).find(b => Number(b.dataset.number) === 5).events.click();
   await vm.runInContext(fs.readFileSync(path.join(root, 'draw-generator.js'), 'utf8'), ctx);
   assert.match(els['latest-draw'].textContent, /3979/);
   assert.equal(states.length, 14);
-  els['random-tab'].events.click();
+  els['new-tab'].events.click();
   assert.deepEqual([...states[0].numbers], [1, 8, 10, 12, 14, 23]);
   assert.equal(states[0].strong, 5);
   assert(states.slice(1).every(s => s.numbers.size === 6 && [...s.numbers].every(n => n >= 1 && n <= 37) && s.strong >= 1 && s.strong <= 7));
-  assert.match(els['mode-description'].textContent, /אקראית/);
-  assert.match(els['generator-status'].textContent, /אינה מנבאת/);
+  assert.match(els['mode-description'].textContent, /לא נמצאו/);
+  assert.match(els['generator-status'].textContent, /אין בכך חיזוי/);
   els['past-tab'].events.click();
   form.fill(Array.from({length: 13}, () => ({numbers: [1, 8, 10, 12, 14, 23], strong: 1})), 'fill');
   // Full match, partial match, strong only (fixed table), and zero matches.
@@ -64,9 +66,9 @@ const picks = (state, strong = false) => (strong ? state.strongElement : state.n
   assert.deepEqual(marked(states[1].strongElement), [5]);
   assert.deepEqual(marked(states[2].numbersElement), [2, 6]);
   assert.match(states[2].status.textContent, /טבלה חלקית/);
-  assert.match(states[1].status.textContent, /דרגת פרס אפשרית: 6 מספרים \+ חזק/);
-  assert.match(states[2].status.textContent, /אין בדיקת זכייה/);
-  assert.match(states[0].status.textContent, /ללא דרגת פרס/);
+  assert.match(states[1].status.textContent, /6\/6.*המספר החזק תואם/);
+  assert.match(els.message.textContent, /לא אישור זכייה/);
+  assert.match(states[0].status.textContent, /0\/6.*המספר החזק תואם/);
   assert.deepEqual(marked(states[3].numbersElement), []);
   assert.deepEqual(marked(states[3].strongElement), []);
   assert.match(states[3].status.textContent, /0\/6/);
@@ -88,17 +90,9 @@ const picks = (state, strong = false) => (strong ? state.strongElement : state.n
   assert.deepEqual(marked(states[0].strongElement), []);
   const published = {id: '3980', date: '2026-10-31', numbers: [1, 3, 16, 21, 32, 36], strong: 1};
   form.setLatestDraw(published);
-  assert.equal(form.getPrizeAmount(published, 3, false), 10);
-  assert.equal(form.getPrizeAmount(published, 3, true), 39);
-  assert.equal(form.getPrizeAmount(published, 4, false), 56);
-  assert.equal(form.getPrizeAmount(published, 4, true), 169);
-  assert.equal(form.getPrizeAmount(published, 5, false), 707);
-  assert.equal(form.getPrizeAmount(published, 5, true), 5345);
-  assert.equal(form.getPrizeAmount(published, 6, true), null);
-  assert.equal(form.getPrizeAmount({...published, id: '3981'}, 3, true), null);
   states[1].numbers = new Set([1, 3, 16, 2, 4, 5]); states[1].strong = 1;
   els.validate.events.click();
-  assert.match(states[1].status.textContent, /39 ₪ בלוטו רגיל/);
+  assert.match(states[1].status.textContent, /3\/6.*המספר החזק תואם/);
   els.validate.events.click();
   assert.match(els.message.textContent, /3980/);
   assert.deepEqual(marked(states[0].strongElement), []);

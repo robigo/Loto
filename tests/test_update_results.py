@@ -99,6 +99,28 @@ class DownloadTests(unittest.TestCase):
 
 
 class UpdateTests(unittest.TestCase):
+    def test_exact_stored_legacy_rules_are_preserved(self):
+        legacy = dict(id='1462', date='2004-03-05', numbers=[7, 20, 21, 30, 39, 44], strong=40)
+        old_strong = dict(id='2233', date='2011-03-01', numbers=[13, 20, 25, 28, 33, 35], strong=8)
+        raw = (HEADER + '1462,05/03/2004,44,39,30,21,20,7,40\n'
+               + '2233,01/03/2011,13,20,25,28,33,35,8\n').encode()
+        self.assertEqual(updater.parse_csv(raw, [legacy, old_strong]), [legacy, old_strong])
+        with self.assertRaises(ValueError):
+            updater.parse_csv(raw)
+        for changed in [raw.replace(b',40\n', b',41\n'),
+                        raw.replace(b'1462,', b'1463,'),
+                        raw.replace(b'05/03/2004', b'06/03/2004'),
+                        raw.replace(b'44,39,30', b'44,39,31')]:
+            with self.subTest(changed=changed), self.assertRaises(ValueError):
+                updater.parse_csv(changed, [legacy, old_strong])
+
+    def test_legacy_allowance_does_not_relax_new_draws(self):
+        legacy = dict(id='2233', date='2011-03-01', numbers=[13, 20, 25, 28, 33, 35], strong=8)
+        raw = (HEADER + '2233,01/03/2011,13,20,25,28,33,35,8\n'
+               + '11,04/01/2020,1,2,3,4,5,6,8\n').encode()
+        with self.assertRaises(ValueError):
+            updater.parse_csv(raw, [legacy])
+
     def test_noncanonical_ids_rejected(self):
         for identifier in ['011', '0', '００１']:
             with self.subTest(identifier=identifier), self.assertRaises(ValueError):

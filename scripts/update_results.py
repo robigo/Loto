@@ -27,7 +27,8 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         raise ValueError('Unexpected source redirect; manual verification required')
 
 
-def parse_csv(raw):
+def parse_csv(raw, existing_history=()):
+    known = {draw['id']: draw for draw in existing_history}
     try:
         text = raw.decode('utf-8-sig')
     except UnicodeDecodeError:
@@ -57,6 +58,14 @@ def parse_csv(raw):
             raise ValueError('Future draw date')
         numbers = sorted(int(cell.strip()) for cell in row[2:8])
         strong = int(row[8].strip())
+        draw = dict(id=identifier, date=date.isoformat(), numbers=numbers, strong=strong)
+        # The official archive includes older bonus-number rule sets. Accept
+        # those only when every field matches an already stored record exactly;
+        # new or changed results still pass the strict range checks below.
+        existing = known.get(identifier)
+        if existing is not None and draw == {**existing, 'numbers': sorted(existing['numbers'])}:
+            draws.append(draw)
+            continue
         # Older rule sets remain supported in the downloaded historical archive.
         modern = date >= dt.date(2010, 1, 1)
         if len(set(numbers)) != 6 or not all(1 <= n <= (37 if modern else 49) for n in numbers):
@@ -152,7 +161,7 @@ def update(raw, root=ROOT, dry_run=False):
     draws_path = root / 'data/draws.json'
     history = json.loads(history_path.read_text(encoding='utf-8'))
     existing_frequency = json.loads(draws_path.read_text(encoding='utf-8'))
-    merged, frequency = merge_results(history, parse_csv(raw))
+    merged, frequency = merge_results(history, parse_csv(raw, history))
     latest = max(merged, key=lambda draw: draw['date'])
     result = dict(updated=frequency is not None, latestId=latest['id'], latestDate=latest['date'], source=SOURCE)
     projected_existing = [dict(date=draw['date'], numbers=draw['numbers']) for draw in sorted(history, key=lambda draw: draw['date'])
