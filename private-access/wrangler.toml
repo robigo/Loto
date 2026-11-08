@@ -1,0 +1,16 @@
+name = "loto-private"
+main = "worker.mjs"
+compatibility_date = "2026-11-08"
+workers_dev = false
+preview_urls = false
+# No routes: hostname, Access application and approval are required before deployment.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+run_worker_first = true
+[vars]
+ACCESS_ISSUER = ""
+ACCESS_AUD = ""
+APP_HOSTNAME = ""
+# Server configuration only; never put approved addresses in browser files.
+APPROVED_EMAILS = ""
