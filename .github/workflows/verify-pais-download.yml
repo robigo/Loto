@@ -1,0 +1,34 @@
+name: Verify Pais download without publishing
+on:
+  pull_request:
+    paths:
+      - 'scripts/update_results.py'
+      - 'scripts/diagnose_pais_download.py'
+      - 'tests/test_update_results.py'
+      - '.github/workflows/verify-pais-download.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Regression tests
+        run: python -m unittest discover -s tests -v
+      - name: Diagnose DNS, TCP, TLS and HTTP using official source
+        run: python scripts/diagnose_pais_download.py
+      - name: Verify actual downloader and merge without writing
+        run: python scripts/update_results.py --check
+      - name: Verify data files remain unchanged
+        if: always()
+        run: git diff --exit-code -- data/history.json data/draws.json

@@ -114,7 +114,7 @@ def merge_results(history, incoming):
     return merged, frequency
 
 
-def fetch_csv():
+def fetch_csv(existing_history=()):
     # No alternate URL is enabled until its provenance and payload are verified.
     # Reject redirects before contacting another endpoint; keep TLS verification.
     opener = urllib.request.build_opener(NoRedirect())
@@ -131,7 +131,7 @@ def fetch_csv():
                 length = response.headers.get('Content-Length')
                 if length is not None and int(length) != len(raw):
                     raise ValueError('Incomplete source response')
-            parse_csv(raw)  # HTML, empty and malformed CSV are not transient failures.
+            parse_csv(raw, existing_history)  # Validate legacy rules against exact stored rows.
             return raw
         except urllib.error.HTTPError as error:
             if error.code not in RETRY_STATUS:
@@ -194,6 +194,8 @@ if __name__ == '__main__':
     parser.add_argument('--check', action='store_true', help='Validate download and merge without writing either dataset')
     args = parser.parse_args()
     try:
-        print(json.dumps(update(args.csv.read_bytes() if args.csv else fetch_csv(), dry_run=args.check), ensure_ascii=False))
+        history = json.loads((ROOT / 'data/history.json').read_text(encoding='utf-8'))
+        raw = args.csv.read_bytes() if args.csv else fetch_csv(history)
+        print(json.dumps(update(raw, dry_run=args.check), ensure_ascii=False))
     except Exception as error:
         raise SystemExit('Update failed; do not publish data changes: ' + str(error)) from error
