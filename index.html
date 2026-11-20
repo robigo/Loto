@@ -113,6 +113,19 @@ footer {
   text-align: center; color: #b7202c;
   font-size: 12px; line-height: 1.6; padding-top: 8px;
 }
+/* Show one regular table at a time without changing any form state. */
+.table-tabs { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 12px 0; }
+.table-tabs button { min-height: 44px; border: 1px solid #b7202c; border-radius: 6px; background: white; color: #9d202a; font: bold 15px Arial; cursor: pointer; }
+.table-tabs button[aria-selected="true"] { background: #b7202c; color: white; }
+.table-tabs-label { text-align: center; margin: 8px 0; font-size: 14px; }
+.ticket-help { max-width: 440px; margin: 12px auto; padding: 0 12px; }
+.ticket-help summary { cursor: pointer; font-weight: bold; text-align: center; }
+[hidden] { display: none !important; }
+@media print {
+  #tables > .panel[hidden] { display: block !important; }
+  .table-tabs, .table-tabs-label { display: none; }
+  .panel { break-inside: avoid; }
+}
 </style>
 <link rel="stylesheet" href="frequency.css?v=systematic-check-20261028">
 <script src="frequency.js" defer></script>
@@ -163,6 +176,8 @@ footer {
     <span dir="rtl">6 מספרים מתוך 37</span>
     <span dir="rtl">חזק</span>
   </div>
+  <p class="table-tabs-label" id="table-tabs-label" hidden>בחר טבלה לעריכה — כל 14 הטבלאות נשמרות בטופס</p>
+  <div id="table-tabs" class="table-tabs" role="tablist" aria-label="טבלאות הטופס" hidden></div>
   <div id="tables"></div>
   <footer>
     הדמיה עצמאית לשעשוע בלבד, ללא קשר למפעל הפיס.<br>
@@ -170,7 +185,9 @@ footer {
     גרסה ציבורית 1.0 · © 2026 Robigo Digital · כל הזכויות שמורות
   </footer>
 </main>
+<details class="ticket-help"><summary>הסבר על המילוי וההשוואה</summary>
 <p class="mode-description frequency-note">ההשוואה להיסטוריה היא לפי ששת המספרים ללא חשיבות לסדר. במצב ״הוגרלו בעבר״ גם המספר החזק נלקח מאותה הגרלה, בטווח 1–7. במצב ״לא נמצאו״ המספר החזק מפוזר בין הטבלאות. המילוי האוטומטי מונע צירופים כפולים ומנסה לצמצם חפיפה בין הטבלאות, כולל מול הטבלה הראשונה. הפיזור אינו חיזוי ואינו מבטיח יותר פגיעות. מועד ההגרלה האחרונה במאגר מוצג בראש הדף; הנתונים מתרעננים לאחר פרסום עדכון למאגר. הופעה בעבר אינה מעידה שהיה זוכה בפרס ואינה משנה את הסיכוי בהגרלה הבאה.</p>
+</details>
 </section>
 <section id="analysis-panel" class="frequency" role="tabpanel" aria-labelledby="analysis-tab" hidden>
   <h2 id="frequency-title">אילו מספרים חזרו בהגרלות?</h2>
@@ -448,8 +465,55 @@ document.getElementById('validate').addEventListener('click', () => {
 });
 
 </script>
+<script>
+(function setupTableTabs() {
+  const panels = [...document.querySelectorAll('#tables > .panel')];
+  const tablist = document.getElementById('table-tabs');
+  const tabs = panels.map((panel, index) => {
+    const tab = document.createElement('button');
+    tab.type = 'button';
+    tab.id = `table-tab-${index + 1}`;
+    tab.textContent = String(index + 1);
+    tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-label', `טבלה ${index + 1}${index === 0 ? ' — הבחירה שלי' : ''}`);
+    panel.id = `table-page-${index + 1}`;
+    panel.setAttribute('role', 'tabpanel');
+    panel.setAttribute('aria-labelledby', tab.id);
+    tab.setAttribute('aria-controls', panel.id);
+    tab.addEventListener('click', () => select(index));
+    tab.addEventListener('keydown', event => {
+      let next;
+      if (event.key === 'ArrowLeft') next = (index + 1) % panels.length;
+      else if (event.key === 'ArrowRight') next = (index + panels.length - 1) % panels.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = panels.length - 1;
+      if (next !== undefined) {
+        event.preventDefault();
+        select(next);
+        tabs[next].focus();
+      }
+    });
+    tablist.appendChild(tab);
+    return tab;
+  });
+  function select(selected) {
+    panels.forEach((panel, index) => {
+      const active = index === selected;
+      panel.hidden = !active;
+      tabs[index].setAttribute('aria-selected', String(active));
+      tabs[index].tabIndex = active ? 0 : -1;
+    });
+  }
+  if (panels.length) {
+    select(0);
+    tablist.hidden = false;
+    document.getElementById('table-tabs-label').hidden = false;
+  }
+})();
+</script>
 </body>
 </html>
+
 
 
 
