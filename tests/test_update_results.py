@@ -25,13 +25,23 @@ class DownloadTests(unittest.TestCase):
         response.__exit__ = Mock(return_value=False)
         return response
 
-    def fetch(self, effects):
+    def fetch(self, effects, existing_history=()):
         opener = Mock()
         opener.open.side_effect = effects
         with patch.object(updater.urllib.request, 'build_opener', return_value=opener), \
                 patch.object(updater.time, 'sleep') as sleep:
-            result = updater.fetch_csv()
+            result = updater.fetch_csv(existing_history)
         return result, opener, sleep
+
+    def test_download_accepts_only_exact_stored_legacy_rules(self):
+        legacy = dict(id='2233', date='2011-03-01', numbers=[13, 20, 25, 28, 33, 35], strong=8)
+        raw = (HEADER + '2233,01/03/2011,13,20,25,28,33,35,8\n').encode()
+        self.assertEqual(self.fetch([self.response(raw)], [legacy])[0], raw)
+        for invalid in [raw, raw.replace(b',8\n', b',9\n')]:
+            with self.subTest(raw=invalid), self.assertRaises(ValueError):
+                self.fetch([self.response(invalid)])
+        with self.assertRaises(ValueError):
+            self.fetch([self.response(raw + b'3983,08/11/2026,1,2,3,4,5,6,8\n')], [legacy])
 
     def test_timeout_then_success(self):
         result, opener, sleep = self.fetch([urllib.error.URLError(socket.timeout('timed out')), self.response()])
