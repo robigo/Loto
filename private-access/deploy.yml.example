@@ -1,0 +1,53 @@
+# DISABLED TEMPLATE. Do not move into .github/workflows before explicit approval.
+# Configure protected environment, secrets, repository variable and Access FIRST.
+# Require reviewers in the environment where supported. All deployments need approval.
+name: Publish protected Loto assets
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Fetch and publish Lotto results]
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: loto-private-deployment
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: >-
+      vars.PRIVATE_LOTO_ENABLED == 'true' &&
+      github.repository == 'robigo/Loto' &&
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_repository.full_name == github.repository ||
+       github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    environment: loto-private
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate stored draws, build and test gate
+        run: |
+          python -m unittest discover -s tests -v
+          node private-access/build.mjs
+          node --test tests/private-access/*.test.mjs
+      - name: Record deployed source
+        run: git rev-parse HEAD >> "$GITHUB_STEP_SUMMARY"
+      # PIN a reviewed Wrangler version here before activation; no auto-install latest.
+      # Before activation also set exact protected route + issuer/AUD/host in config.
+      - name: Deploy only to the reviewed protected hostname
+        working-directory: private-access
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          echo 'HOLD: pin Wrangler and review routes/config/Access before replacing this step.'
+          exit 1
