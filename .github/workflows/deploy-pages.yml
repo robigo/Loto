@@ -1,0 +1,52 @@
+name: Deploy public Lotto site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Fetch and publish Lotto results]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: public-lotto-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      (github.event_name != 'workflow_run' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # Always publish trusted, current main, including the result commit just
+      # pushed by GITHUB_TOKEN (which cannot trigger a new push workflow).
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/configure-pages@v5
+      - name: Stage the tracked static site from current main
+        shell: bash
+        run: |
+          mkdir _site
+          git archive HEAD | tar -x -C _site
+          test -f _site/index.html
+          test -f _site/data/history.json
+          test -f _site/data/draws.json
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Publish GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
