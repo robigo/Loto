@@ -1,45 +1,89 @@
 name: Fetch and publish Lotto results
+
 on:
   schedule:
-    # Run after Tuesday and Saturday drawings (GitHub cron uses UTC).
-    - cron: '15 0 * * 0,3'
+    # Daily checks include Thursday and special drawings. UTC, independent of a PC.
+    - cron: '53 22,4 * * *'
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish validated new draws (main only)
+        type: boolean
+        default: false
   push:
-    branches: [main]
+    branches: [main, codex/public-cloud-results-20261122]
     paths:
       - '.github/workflows/fetch-lotto-results.yml'
+      - 'scripts/cloud_sync_results.py'
       - 'scripts/update_results.py'
+      - 'tests/test_cloud_sync_results.py'
       - 'tests/test_update_results.py'
+      - 'cloud/pais-relay/**'
+
 permissions:
-  contents: write
+  contents: read
 concurrency:
-  group: fetch-lotto-results
+  group: public-lotto-cloud-sync
   cancel-in-progress: false
+
 jobs:
-  update:
+  sync:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: write
+    env:
+      PUBLISH: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.publish)) }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Test validation and preservation of existing data
-        run: python -m unittest discover -s tests -v
-      - name: Fetch and validate published Pais results
-        run: python scripts/update_results.py
-      - name: Publish both data files when new draws are available
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test preservation, conflicts and cloud transport
         run: |
-          if git diff --quiet -- data/history.json data/draws.json; then
-            echo "No new validated draws to publish." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+          python -m unittest discover -s tests -v
+          node --test tests/pais-relay.test.mjs
+      - name: Verify publication permission without changing main
+        if: env.PUBLISH == 'true'
+        run: git push --dry-run origin HEAD:main
+      - name: Retrieve and validate official draw data through Cloudflare
+        id: results
+        env:
+          PAIS_RELAY_TOKEN: ${{ secrets.PAIS_RELAY_TOKEN }}
+        shell: bash
+        run: |
+          if [ "$PUBLISH" = 'true' ]; then
+            python scripts/cloud_sync_results.py
+          else
+            python scripts/cloud_sync_results.py --check
+            git diff --exit-code -- data/history.json data/draws.json
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/history.json data/draws.json
-          git commit -m "data: publish validated Pais Lotto results"
+      - name: Commit only both result datasets
+        if: env.PUBLISH == 'true' && steps.results.outputs.updated == 'true'
+        shell: bash
+        run: |
+          python - <<'PY'
+          import subprocess
+          expected = {'data/history.json', 'data/draws.json'}
+          actual = set(subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines())
+          if actual != expected:
+              raise SystemExit('Refusing to publish unexpected changes')
+          PY
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- data/history.json data/draws.json
+          git commit -m 'data: sync validated Pais results from cloud'
           git push origin HEAD:main
+      - name: Run summary
+        if: success()
+        env:
+          LATEST_ID: ${{ steps.results.outputs.latest_id }}
+          UPDATED: ${{ steps.results.outputs.updated }}
+        run: |
+          echo "Validated official draw: $LATEST_ID" >> "$GITHUB_STEP_SUMMARY"
+          echo "Publication enabled: $PUBLISH; new data: $UPDATED" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Cloudflare transport + GitHub-hosted runner. No local computer required.' >> "$GITHUB_STEP_SUMMARY"

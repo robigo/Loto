@@ -1,0 +1,9 @@
+{
+  "name": "loto-public-pais-relay",
+  "account_id": "55104b2111d90a5dc1026f0134902002",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": { "enabled": false }
+}
